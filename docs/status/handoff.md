@@ -25,7 +25,7 @@ Expected split value: M2 small (visit form vs. place visit history, after the da
 - Built M2 (first visit) in the parallel working mode: lead committed the contract (migration 3, `src/data/visits.ts`, people Artur/Agam, "Writing as" setting, date helpers, strings, stub routes, shared `DateField`); agent `m2-form` built the visit/review forms + drafts, agent `m2-history` built place history, visit card, visit detail. Lead added "Our names" in Settings and merged.
 - Code review of M1 + contract found three issues, all fixed: Overpass 200-with-`remark` partial results no longer wipe the cache; catalog sync is single-flight; all DB writes go through one queue (`src/data/write-queue.ts`, `writeTransaction`) with `busy_timeout`.
 - Route note: `visit/[id]/index.tsx` produced different typed-route names under `expo start` vs `expo lint`/`export`; routes are now flat (`visit/[id].tsx`, `visit/review.tsx`, `visit/new.tsx`).
-- Verified: typecheck, lint, iOS + web bundles, 24 data-layer checks, full web click-through in Hebrew (add visit → partner review → averages). **Not yet verified on the iPhone.** Commits still local only (waiting for `Likva32` to be added as collaborator).
+- Verified: typecheck, lint, iOS + web bundles, 24 data-layer checks, full web click-through in Hebrew (add visit → partner review → averages). **Not yet verified on the iPhone.** All commits pushed to `AgamDan/mapeat` `main` on Nov 3 (this repo's git config pins the credential username to `AgamDan`; pushes from an agent shell need `$env:GCM_INTERACTIVE='always'` once for sign-in).
 - Next: M3 (wishlist, tags, timeline) — high parallel value. M3 decisions are recorded in the design spec (Nov 3 rows).
 - Bug fixed after the user's phone test: tapping restaurant dots did nothing. Cause: Fabric flattened the marker's layout-only wrapper, so the native Apple Maps marker shrank to the dot and the dot was drawn outside it. Fix: `collapsable={false}` on the wrapper + map-tap fallback (`src/features/map/hit-test.ts`). Needs re-check on the iPhone.
 
@@ -34,7 +34,7 @@ Expected split value: M2 small (visit form vs. place visit history, after the da
 - Built M1 (map + catalog): Apple Maps via `react-native-maps` behind `src/features/map/journal-map.tsx` (web stub), SQLite cache (`src/data/`), Overpass client with fallback servers, tile-based refresh, place profile sheet (`src/app/place/[id].tsx`), "locate me" (permission only on tap), ⓘ OpenStreetMap credit on the map. Added `react-native-maps`, `expo-sqlite`, `expo-location`, dev-only `osm-pbf-parser`, `metro.config.js` (expo-sqlite web).
 - All public Overpass instances failed during testing (overpass-api.de 502 "at capacity", private.coffee and kumi timeouts, mail.ru 504). User chose a built-in Israel catalog plus live Overpass: `npm run catalog:build` → `assets/catalog/israel.json` (7,210 places, 943 KB, Geofabrik data 2026-11-02; Tel Aviv rectangle 1,315 vs 1,316 from live Overpass the night before).
 - Verified: typecheck, lint, iOS and web bundles; migrations/seed/cache/refresh against Node's SQLite; Commons photo lookup with license. **Not yet verified on the iPhone.** Push to GitHub is blocked: git is signed in as `Likva32`, which lacks write access to `AgamDan/mapeat` (local commits only).
-- Next: phone check of M0 + M1; then M2 (first visit).
+- Next: phone check of M0 + M1; then M2 (first visit). (Push issue resolved Nov 3: repo pinned to the `AgamDan` credential.)
 
 ## Planning + Milestone 0 — November 2, 2026
 
