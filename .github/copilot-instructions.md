@@ -1,0 +1,61 @@
+# MapEat — Copilot instructions
+
+MapEat (working name) is a private, shared restaurant journal for one couple: a map of real restaurants, dated visits with each person's own 1–10 review, photos, a shared wishlist, and a timeline. The workspace is mostly **planning**; the app itself is still the Expo starter template. No journal, map, backend, auth, or photo feature has been implemented yet.
+
+## Workspace layout and sources of truth
+
+- Git repo: https://github.com/AgamDan/mapeat (branch `main`); the repo root is the workspace root, not `mapeat-starter/`.
+
+- `mapeat-starter/` — the Expo app. All app commands run from here. Keep the app in this folder during feature work (moving it to the root is a separate, deferred task).
+- `docs/superpowers/specs/2026-10-31-mapeat-design.md` — the first-release design. Distinguishes **confirmed** user decisions from **proposals** and lists open decisions. Read it before implementing any feature.
+- `MAPEAT_CODEX_HANDOFF (1).md` — running status log (newest entries at top) with environment history and blockers. Keep it updated when status changes.
+- `docs/research/` — catalog/photo coverage research (e.g. Tel Aviv OSM + Wikimedia Commons).
+- `mapeat-starter/AGENTS.md` — Expo-specific agent rules (summarized below).
+- `.superpowers/` (browser wireframe mockups) and `.mapeat-recovery/` (old SDK 57 dependency backup) are gitignored scratch areas, not app code.
+
+## Commands (run in `mapeat-starter/`)
+
+```powershell
+npx expo start --go          # dev server for Expo Go on a physical iPhone (scan QR with Camera; same Wi-Fi)
+npx expo start --go --clear  # same, clearing Metro cache
+npx tsc --noEmit             # typecheck
+npx expo lint                # lint (ESLint is NOT installed yet; first run scaffolds config/deps)
+npx expo-doctor              # diagnose dependency/config issues
+npx expo install <package>   # ALWAYS use this to add packages (SDK-compatible versions), not npm/yarn add
+npx expo install --fix       # realign package versions to the SDK
+```
+
+- There is no test runner configured yet (no Jest); there are no tests to run individually.
+- Development is on **Windows**: `npm run ios` / iOS Simulator does not work. Device testing is Expo Go on iPhone only.
+- Never use `npm install --force` or `--legacy-peer-deps` to get past resolution errors; diagnose them.
+- Do not run `npm audit fix --force`.
+- Run lint and typecheck before declaring a task done. `tsc` currently reports **pre-existing** SDK 58 starter errors in `src/components/app-tabs.tsx`, `src/components/app-tabs.web.tsx`, and `src/hooks/use-theme.ts` (comparisons against the removed `'unspecified'` color scheme / `null` index, and a web tab `ref` type). These are tracked foundation work — don't confuse them with regressions.
+
+## Expo SDK 58 — do not trust training data
+
+- Stack: Expo `~58` (SDK 58 explicitly chosen — never downgrade to 57), React Native 0.88.1, React 19.3, TypeScript ~6.0 (strict), Expo Router with `typedRoutes` and `reactCompiler` experiments enabled in `app.json`.
+- Before touching any Expo/RN API, fetch the versioned docs at `https://docs.expo.dev/versions/v58.0.0/` (or the index at `https://docs.expo.dev/llms.txt`). APIs change every SDK.
+- The app runs in **Expo Go**, which only includes Expo's bundled native modules. Do not add libraries needing custom native code without explicit approval (that requires a development build). Native Google Maps is not available in iOS Expo Go.
+- Never create/edit `ios/` or `android/` by hand (Continuous Native Generation); configure native behavior through `app.json` and config plugins.
+
+## Code conventions
+
+- Expo Router: every file in `src/app/` is a route; `_layout.tsx` defines navigators. Non-route code goes in `src/components/`, `src/hooks/`, `src/constants/`.
+- Import alias `@/*` → `src/*`, and `@/assets/*` → `assets/*`.
+- Platform-specific files use the `.web.tsx` / `.web.ts` suffix next to the native file (e.g. `app-tabs.tsx` uses `expo-router/unstable-native-tabs`; `app-tabs.web.tsx` is the web variant). Keep both variants in sync when changing behavior.
+- Theming: colors come from `Colors.light/dark` in `src/constants/theme.ts` via `useTheme()`; use `ThemedText` / `ThemedView` and `ThemeColor` keys rather than hardcoded colors. Spacing uses the `Spacing` scale. `theme.ts` imports `@/global.css` (web fonts).
+- Kebab-case file names (`themed-text.tsx`, `use-color-scheme.ts`); named exports for components/hooks, default export for route screens and `AppTabs`.
+
+## Product rules that constrain implementation
+
+These are confirmed user decisions; see the design spec for details and open questions.
+
+- **Hard no-cost constraint**: no billing accounts, payment details, paid plans, metered APIs, or Apple Developer enrollment. If a step could cost money, explain the cost and STOP. Google Places/Google billing is excluded — do not ask to enable it again, and never scrape Google Maps.
+- **Ask when uncertain**: proposals in the spec are not approved. Resolve open decisions (listed in the spec) with the user before implementing dependent features; don't guess on scope, permissions, spending, language, journal ownership, or rating semantics.
+- **Bilingual**: Hebrew (RTL) and English (LTR) with in-app language switching. Translate UI labels and validation/error messages; user-written notes stay as written. Switching language must not lose an unsaved draft.
+- **Data model**: Place and Visit are separate. One shared `Visit` (place + visit date) has one `VisitReview` per member (own 1–10 rating + notes). A partner's review attaches to the existing visit; a return visit creates a new visit. Never overwrite a visit/review or represent a missing review as rating 0. Store visit calendar date separately from created/updated timestamps (date-only must not shift across timezones).
+- **Restaurant catalog**: restaurants must exist on the map with profiles before any visit (manual-only place entry is rejected). Candidate free source is OSM/Overpass with properly licensed, attributed Wikimedia Commons images (keep source, author, license). If no reusable photo exists, keep the restaurant selectable and show a localized "No photo yet" placeholder. Profile photos are separate from the couple's private visit photos — never mix them.
+- **Wishlist**: one shared wishlist; a place leaves it automatically only after its first visit is *successfully* saved.
+- **Reliability**: keep drafts until save succeeds; retries must not duplicate records (stable submission IDs); photo upload failures don't undo a saved visit.
+- **Backend (proposed, not yet set up)**: Supabase Free (Auth, Postgres, private Storage) with Row Level Security for member-only access; Sign in with Apple via `expo-apple-authentication`. No secrets in client code or source control. Hiding UI is not access control.
+- Audience is just the couple on two iPhones via Expo Go with the dev server running; public release, Android, and standalone distribution are out of scope.
