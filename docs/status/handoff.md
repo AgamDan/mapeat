@@ -26,7 +26,8 @@ Expected split value: M2 small (visit form vs. place visit history, after the da
 - Code review of M1 + contract found three issues, all fixed: Overpass 200-with-`remark` partial results no longer wipe the cache; catalog sync is single-flight; all DB writes go through one queue (`src/data/write-queue.ts`, `writeTransaction`) with `busy_timeout`.
 - Route note: `visit/[id]/index.tsx` produced different typed-route names under `expo start` vs `expo lint`/`export`; routes are now flat (`visit/[id].tsx`, `visit/review.tsx`, `visit/new.tsx`).
 - Verified: typecheck, lint, iOS + web bundles, 24 data-layer checks, full web click-through in Hebrew (add visit → partner review → averages). **Not yet verified on the iPhone.** Commits still local only (waiting for `Likva32` to be added as collaborator).
-- Next: M3 (wishlist, tags, timeline) — high parallel value.
+- Next: M3 (wishlist, tags, timeline) — high parallel value. M3 decisions are recorded in the design spec (Nov 3 rows).
+- Bug fixed after the user's phone test: tapping restaurant dots did nothing. Cause: Fabric flattened the marker's layout-only wrapper, so the native Apple Maps marker shrank to the dot and the dot was drawn outside it. Fix: `collapsable={false}` on the wrapper + map-tap fallback (`src/features/map/hit-test.ts`). Needs re-check on the iPhone.
 
 ## Milestone 1 — November 3, 2026
 

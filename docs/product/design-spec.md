@@ -59,6 +59,11 @@ These answers resolve or narrow the open decisions listed later in this document
 | Reviewers before the backend | One phone with a "Writing as" switch between the two people, each in their own color. Real accounts replace the switch when the backend arrives; existing local reviews must keep their author. |
 | Menu photos | Private (couple-only) photos of a restaurant's menu belong to the place, not a visit: one "Menu" section on the place profile, newest first with the date taken. Can be added before any visit (e.g. for a wishlist place) and anytime later. Never shown as public profile photos. |
 | Adding visit photos later | Food/outing photos can be added to an already-saved visit anytime, by either member. |
+| "Want to go back" after a visit | Cleared automatically when a new visit to that place is saved (decided Nov 3). |
+| Deleting all visits of a place | The place stays in the journal; it does not return to the wishlist. |
+| Own tags | Belong to a place (e.g. "date night", "brunch"), not to a visit. |
+| Timeline | Its own tab: all visits as postcards, newest first, grouped by month, with a person filter. |
+| Wishlist placement | Heart pins on the map plus a third tab, "Wishlist", listing wishlist places. |
 
 ## Success
 
