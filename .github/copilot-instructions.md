@@ -1,6 +1,8 @@
 # MapEat — Copilot instructions
 
-MapEat (working name) is a private, shared restaurant journal for one couple: a map of real restaurants, dated visits with each person's own 1–10 review, photos (visit photos and place menu photos), a shared wishlist, and a timeline. Milestone M0 (foundation: postcard theme, Hebrew/English with runtime RTL, first-launch language choice, Map/Timeline tabs, settings) is built; the map, journal, photos, and backend are not yet. Track progress in `docs/product/implementation-plan.md`.
+MapEat (working name) is a private, shared restaurant journal for one couple: a map of real restaurants, dated visits with each person's own 1–10 review, photos (visit photos and place menu photos), a shared wishlist, and a timeline.
+
+**Start every session by reading, in order:** `docs/status/handoff.md` (current status, working mode, next step — newest entries at top), `docs/product/implementation-plan.md` (roadmap M0–M6 with progress), and the "Decisions confirmed" section of `docs/product/design-spec.md`. As of November 3, 2026: M0 (foundation), M1 (map + OSM catalog) and M2 (visits and both reviews, local on one phone) are built; M3 (wishlist, tags, timeline) is next; iPhone verification of M0–M2 is pending. Keep these files updated whenever status changes.
 
 ## Workspace layout and sources of truth
 
