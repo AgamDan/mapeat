@@ -45,3 +45,6 @@ example
 # Local brainstorm sessions and dependency recovery backups
 .superpowers/
 .mapeat-recovery/
+
+# Downloaded OpenStreetMap extracts used by scripts/build-catalog.mjs
+.cache/

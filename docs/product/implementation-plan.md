@@ -54,18 +54,21 @@ Expo Go resets native RTL overrides, so `I18nManager.forceRTL` cannot be used. I
 
 Place summary shows each person's own average; a missing review is absent, never 0.
 
-### Catalog (live Overpass)
+### Catalog (built-in Israel file + live Overpass)
 
-- Query the visible map area for `amenity` in `restaurant|cafe|fast_food|bar|pub|ice_cream`, only when zoomed in enough (bounded area), with a short timeout.
+- **Built-in:** `npm run catalog:build` (`scripts/build-catalog.mjs`) converts Geofabrik's free daily Israel-and-Palestine OSM extract into `assets/catalog/israel.json`. `src/data/starter-catalog.ts` loads it into `places` on first launch and whenever its `version` changes, never overwriting fresher live data, and marks its map tiles (plus one neighboring tile, ~2 km) as fresh. Rebuild roughly monthly.
+- **Live:** for tiles that are missing or older than 30 days (abroad, empty areas), query Overpass for the visible map area for `amenity` in `restaurant|cafe|fast_food|bar|pub|ice_cream`, only when zoomed in enough (bounded area), with a timeout and sequential fallback servers.
 - Cache results in `places` keyed by OSM ID; show cached places immediately and refresh in the background.
-- On failure: keep cached data, show a non-blocking localized error, retry later. Never parallelize retries; space them out; identify the app in the User-Agent.
-- Show "© OpenStreetMap contributors" on the map. Show a Commons photo only with source, author, and license; otherwise "No photo yet".
+- On failure: keep cached data and retry later. The map shows a loading or error message only when no places are visible. Never parallelize retries; space them out; identify the app in the User-Agent.
+- Show "© OpenStreetMap contributors" via an ⓘ button on the map (tap to reveal; the text links to the OSM copyright page) and on the place profile. Show a Commons photo only with source, author, and license; otherwise "No photo yet".
 
 ## Milestones
 
 Each milestone ends with `npx tsc --noEmit`, `npx expo lint`, and a check on the iPhone in both languages.
 
 Progress: **M0 built November 2, 2026** — typecheck, lint, iOS bundle, and the web flow (first-launch choice → tabs → settings language/appearance switch → persisted after reload) verified. **iPhone check pending** (especially RTL via the `direction` style and the native tab bar in Hebrew).
+
+**M1 built November 3, 2026** — Apple Maps (`JournalMap`), built-in Israel catalog (7,210 places; Tel Aviv count matches live Overpass), Overpass client with fallback, SQLite cache with tiles, place profile sheet (bilingual names, cuisine, address, hours, website, Commons photo with license or "No photo yet", Open in Apple Maps, OSM credit), "locate me" (permission only on tap), ⓘ map credit. Verified: typecheck, lint, iOS + web bundles; catalog/DB logic against Node SQLite and live Commons. Live Overpass was overloaded during testing (all instances 502/timeout), so the live path is verified only for failure handling. **iPhone check pending.**
 
 | # | Milestone | Done when |
 | --- | --- | --- |
@@ -79,8 +82,8 @@ Progress: **M0 built November 2, 2026** — typecheck, lint, iOS bundle, and the
 
 ## Open questions to resolve when their milestone starts
 
-- M1: minimum zoom level for catalog loading; cache refresh age; which Overpass instance(s) and how many retries.
-- M2: names and colors of the two people (defaults: terracotta and sea blue); whether a visit can have an optional time.
+- M1: done with defaults — zoom limit ~5 km map height, 250 nearest markers, 30-day refresh, two Overpass servers. Revisit after phone testing (marker density, clustering).
+- M2: names and colors of the two people (defaults: terracotta and sea blue); whether a visit can have an optional time. Journal places must be excluded from catalog cleanup in `replacePlacesInArea`.
 - M3: what happens to "want to go back" after another visit; whether deleting all visits restores wishlist status.
 - M4: photo count/size limits per visit; compression level (matters for Supabase's 1 GB free storage later).
 - M5: how local-first data is merged if both phones created data before sync; sign-out cleanup.

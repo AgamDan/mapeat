@@ -78,6 +78,12 @@ Conclusions:
 - Public Overpass availability is unreliable from a client (502 and timeout before success). Prefer a periodically refreshed copy over live per-viewport queries from the phone.
 - The raw response was used only for these counts and was not committed or imported. Storing OSM data in the app requires ODbL attribution ("© OpenStreetMap contributors").
 
+## Overpass reliability and the Geofabrik alternative — November 3, 2026
+
+- During M1 testing every public Overpass instance tried failed for the same small Tel Aviv query: `overpass-api.de` 502 "server is currently at capacity" (instantly), `overpass.private.coffee` and `overpass.kumi.systems` 60-second timeouts, `maps.mail.ru` 504 after 45 s. A live-only catalog would leave a first launch with an empty map.
+- Geofabrik's free daily extract `israel-and-palestine-latest.osm.pbf` (121 MB, no account) was processed locally into 7,210 venues (restaurant 3,100; cafe 1,718; fast_food 1,668; bar 347; ice_cream 201; pub 176; 392 of them drawn as building outlines). For the research rectangle and the three original kinds it gave 1,315 venues vs 1,316 from live Overpass the night before, so the two sources agree.
+- Only 2 venues in the whole extract carry a `wikimedia_commons` tag, confirming that profile photos will mostly be the "No photo yet" placeholder.
+
 ## Proposed next steps
 
 1. Resolved: user approved a selectable restaurant profile with a neutral "No photo yet" placeholder when no reusable photo exists. Keep it separate from private visit photos.

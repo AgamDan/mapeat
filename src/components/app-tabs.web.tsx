@@ -17,7 +17,7 @@ export default function AppTabs() {
       <TabList asChild>
         <View style={styles.listContainer}>
           <View style={[styles.list, { backgroundColor: theme.backgroundRaised, borderColor: theme.line }]}>
-            <TabTrigger name="index" href="/(tabs)/index" asChild>
+            <TabTrigger name="index" href="/" asChild>
               <TabButton>{t('tabs.map')}</TabButton>
             </TabTrigger>
             <TabTrigger name="timeline" href="/timeline" asChild>

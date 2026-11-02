@@ -9,16 +9,22 @@ import { useTheme } from '@/hooks/use-theme';
 import { useT } from '@/i18n/i18n';
 
 /** Tab screen header: brand-colored title and a settings button at the end. */
-export function ScreenHeader({ title }: { title: string }) {
+export function ScreenHeader({ title, floating = false }: { title: string; floating?: boolean }) {
   const theme = useTheme();
   const t = useT();
   const insets = useSafeAreaInsets();
+  // Over the map, title and button sit on small cards so they stay readable.
+  const floatingSurface = floating ? [styles.floating, { backgroundColor: theme.card }] : null;
 
   return (
-    <View style={[styles.header, { paddingTop: insets.top + Spacing.two }]}>
-      <ThemedText type="title" themeColor="accent" style={styles.title}>
-        {title}
-      </ThemedText>
+    <View
+      pointerEvents="box-none"
+      style={[styles.header, { paddingTop: insets.top + Spacing.two }]}>
+      <View style={floatingSurface}>
+        <ThemedText type="title" themeColor="accent" style={styles.title}>
+          {title}
+        </ThemedText>
+      </View>
       <Link href="/settings" asChild>
         <Pressable
           accessibilityRole="button"
@@ -26,7 +32,8 @@ export function ScreenHeader({ title }: { title: string }) {
           hitSlop={8}
           style={({ pressed }) => [
             styles.gear,
-            { backgroundColor: theme.chip },
+            { backgroundColor: floating ? theme.card : theme.chip },
+            floating && styles.shadow,
             pressed && styles.pressed,
           ]}>
           <SymbolView
@@ -50,6 +57,21 @@ const styles = StyleSheet.create({
   },
   title: {
     flexShrink: 1,
+  },
+  floating: {
+    paddingHorizontal: Spacing.three,
+    paddingVertical: Spacing.one,
+    borderRadius: Radius.pill,
+    shadowColor: '#503214',
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 3 },
+  },
+  shadow: {
+    shadowColor: '#503214',
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 3 },
   },
   gear: {
     width: 36,

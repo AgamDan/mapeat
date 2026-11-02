@@ -7,11 +7,13 @@ import {
 } from '@expo-google-fonts/frank-ruhl-libre';
 import { DarkTheme, DefaultTheme, LocaleProvider, Stack, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
+import { SQLiteProvider } from 'expo-sqlite';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { Colors, Fonts } from '@/constants/theme';
+import { DATABASE_NAME, initDatabase } from '@/data/database';
 import { useResolvedScheme } from '@/hooks/use-theme';
 import { useLanguage, useT } from '@/i18n/i18n';
 import { SettingsProvider, useSettings } from '@/settings/settings-provider';
@@ -21,7 +23,10 @@ SplashScreen.preventAutoHideAsync();
 export default function RootLayout() {
   return (
     <SettingsProvider>
-      <AppShell />
+      {/* Renders its children only after the database is open and migrated. */}
+      <SQLiteProvider databaseName={DATABASE_NAME} onInit={initDatabase}>
+        <AppShell />
+      </SQLiteProvider>
     </SettingsProvider>
   );
 }
@@ -86,6 +91,15 @@ function AppShell() {
               <Stack.Screen
                 name="settings"
                 options={{ presentation: 'modal', title: t('settings.title') }}
+              />
+              <Stack.Screen
+                name="place/[id]"
+                options={{
+                  presentation: 'formSheet',
+                  sheetAllowedDetents: [0.6, 1],
+                  sheetGrabberVisible: true,
+                  headerShown: false,
+                }}
               />
             </Stack.Protected>
             <Stack.Protected guard={language === null}>

@@ -4,6 +4,13 @@ Last updated: November 2, 2026
 
 Older entries below mention earlier paths (`mapeat-starter/`, `MAPEAT_CODEX_HANDOFF (1).md`, `docs/superpowers/specs/`). They are kept as written; see the November 2 restructure entry for the current locations.
 
+## Milestone 1 — November 3, 2026
+
+- Built M1 (map + catalog): Apple Maps via `react-native-maps` behind `src/features/map/journal-map.tsx` (web stub), SQLite cache (`src/data/`), Overpass client with fallback servers, tile-based refresh, place profile sheet (`src/app/place/[id].tsx`), "locate me" (permission only on tap), ⓘ OpenStreetMap credit on the map. Added `react-native-maps`, `expo-sqlite`, `expo-location`, dev-only `osm-pbf-parser`, `metro.config.js` (expo-sqlite web).
+- All public Overpass instances failed during testing (overpass-api.de 502 "at capacity", private.coffee and kumi timeouts, mail.ru 504). User chose a built-in Israel catalog plus live Overpass: `npm run catalog:build` → `assets/catalog/israel.json` (7,210 places, 943 KB, Geofabrik data 2026-11-02; Tel Aviv rectangle 1,315 vs 1,316 from live Overpass the night before).
+- Verified: typecheck, lint, iOS and web bundles; migrations/seed/cache/refresh against Node's SQLite; Commons photo lookup with license. **Not yet verified on the iPhone.** Push to GitHub is blocked: git is signed in as `Likva32`, which lacks write access to `AgamDan/mapeat` (local commits only).
+- Next: phone check of M0 + M1; then M2 (first visit).
+
 ## Planning + Milestone 0 — November 2, 2026
 
 - Live OSM measurement for Tel Aviv succeeded (see `docs/research/2026-10-31-tel-aviv-coverage.md`): 1,316 venues; ~1% link any photo; public Overpass returned 502/timeout before succeeding.
