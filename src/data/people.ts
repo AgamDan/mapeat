@@ -2,6 +2,7 @@ import type { SQLiteDatabase } from 'expo-sqlite';
 
 import type { ThemeColor } from '@/constants/theme';
 import { notifyJournalChanged } from '@/data/journal-events';
+import { enqueueWrite } from '@/data/write-queue';
 
 /** The two journal members. Local ids `a` / `b` map to real accounts when the backend arrives. */
 export type PersonId = 'a' | 'b';
@@ -18,12 +19,14 @@ export function isPersonId(value: unknown): value is PersonId {
 }
 
 export async function ensurePeople(db: SQLiteDatabase) {
-  for (const [index, person] of DEFAULT_PEOPLE.entries()) {
-    await db.runAsync(
-      'INSERT OR IGNORE INTO people (id, name, color, sort_order) VALUES (?, ?, ?, ?)',
-      [person.id, person.name, person.color, index],
-    );
-  }
+  await enqueueWrite(async () => {
+    for (const [index, person] of DEFAULT_PEOPLE.entries()) {
+      await db.runAsync(
+        'INSERT OR IGNORE INTO people (id, name, color, sort_order) VALUES (?, ?, ?, ?)',
+        [person.id, person.name, person.color, index],
+      );
+    }
+  });
 }
 
 export async function getPeople(db: SQLiteDatabase): Promise<Person[]> {
@@ -42,6 +45,6 @@ export async function getPeople(db: SQLiteDatabase): Promise<Person[]> {
 export async function renamePerson(db: SQLiteDatabase, id: PersonId, name: string) {
   const trimmed = name.trim();
   if (!trimmed) return;
-  await db.runAsync('UPDATE people SET name = ? WHERE id = ?', [trimmed, id]);
+  await enqueueWrite(() => db.runAsync('UPDATE people SET name = ? WHERE id = ?', [trimmed, id]));
   notifyJournalChanged();
 }

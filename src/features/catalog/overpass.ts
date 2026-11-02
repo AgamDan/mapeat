@@ -72,8 +72,12 @@ async function fetchFrom(endpoint: string, query: string) {
       signal: controller.signal,
     });
     if (!response.ok) throw new CatalogFetchError(`Overpass ${response.status}`);
-    const json = (await response.json()) as { elements?: OverpassElement[] };
-    return json.elements ?? [];
+    const json = (await response.json()) as { elements?: unknown; remark?: string };
+    // A timed-out or out-of-memory query still answers 200, with a `remark` and partial elements.
+    // Treating that as complete would wipe cached places and mark the area fresh.
+    if (json.remark) throw new CatalogFetchError(`Overpass remark: ${json.remark}`);
+    if (!Array.isArray(json.elements)) throw new CatalogFetchError('Overpass response without elements');
+    return json.elements as OverpassElement[];
   } finally {
     clearTimeout(timer);
   }

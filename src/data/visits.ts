@@ -1,6 +1,7 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
 
 import { notifyJournalChanged } from '@/data/journal-events';
+import { enqueueWrite } from '@/data/write-queue';
 import { isPersonId, type PersonId } from '@/data/people';
 import { isLocalDate, type LocalDate } from '@/lib/dates';
 import { newId } from '@/lib/ids';
@@ -147,7 +148,7 @@ export async function saveNewVisit(db: SQLiteDatabase, input: NewVisitInput): Pr
   validateDate(input.visitDate);
   validateRating(input.rating);
   let visitId = '';
-  await db.withExclusiveTransactionAsync(async (txn) => {
+  await enqueueWrite(() => db.withExclusiveTransactionAsync(async (txn) => {
     const existing = await txn.getFirstAsync<{ id: string }>(
       'SELECT id FROM visits WHERE submission_id = ?',
       [input.submissionId],
@@ -184,7 +185,7 @@ export async function saveNewVisit(db: SQLiteDatabase, input: NewVisitInput): Pr
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [newId(), visitId, input.authorId, input.rating, cleanNotes(input.notes), input.submissionId, input.authorId, now, now],
     );
-  });
+  }));
   notifyJournalChanged();
   return { visitId };
 }
@@ -192,7 +193,7 @@ export async function saveNewVisit(db: SQLiteDatabase, input: NewVisitInput): Pr
 /** Adds `authorId`'s review to an existing visit, or edits it if it already exists. */
 export async function saveReview(db: SQLiteDatabase, input: ReviewInput): Promise<void> {
   validateRating(input.rating);
-  await db.withExclusiveTransactionAsync(async (txn) => {
+  await enqueueWrite(() => db.withExclusiveTransactionAsync(async (txn) => {
     const visit = await txn.getFirstAsync<{ id: string }>('SELECT id FROM visits WHERE id = ?', [input.visitId]);
     if (!visit) throw new VisitNotFoundError(input.visitId);
     const resubmitted = await txn.getFirstAsync<{ id: string }>(
@@ -224,34 +225,32 @@ export async function saveReview(db: SQLiteDatabase, input: ReviewInput): Promis
       );
     }
     await txn.runAsync('UPDATE visits SET updated_at = ? WHERE id = ?', [now, input.visitId]);
-  });
+  }));
   notifyJournalChanged();
 }
 
 export async function updateVisitDate(db: SQLiteDatabase, visitId: string, visitDate: LocalDate) {
   validateDate(visitDate);
-  const result = await db.runAsync('UPDATE visits SET visit_date = ?, updated_at = ? WHERE id = ?', [
-    visitDate,
-    Date.now(),
-    visitId,
-  ]);
+  const result = await enqueueWrite(() =>
+    db.runAsync('UPDATE visits SET visit_date = ?, updated_at = ? WHERE id = ?', [visitDate, Date.now(), visitId]),
+  );
   if (result.changes === 0) throw new VisitNotFoundError(visitId);
   notifyJournalChanged();
 }
 
 /** Deletes a visit and its reviews. The journal place (and its wishlist state) stays. */
 export async function deleteVisit(db: SQLiteDatabase, visitId: string) {
-  await db.withExclusiveTransactionAsync(async (txn) => {
+  await enqueueWrite(() => db.withExclusiveTransactionAsync(async (txn) => {
     await txn.runAsync('DELETE FROM visit_reviews WHERE visit_id = ?', [visitId]);
     await txn.runAsync('DELETE FROM visits WHERE id = ?', [visitId]);
-  });
+  }));
   notifyJournalChanged();
 }
 
 /** Deletes one review; if it was the visit's only review, the visit is deleted too. */
 export async function deleteReview(db: SQLiteDatabase, reviewId: string): Promise<{ visitDeleted: boolean }> {
   let visitDeleted = false;
-  await db.withExclusiveTransactionAsync(async (txn) => {
+  await enqueueWrite(() => db.withExclusiveTransactionAsync(async (txn) => {
     const review = await txn.getFirstAsync<{ visit_id: string }>(
       'SELECT visit_id FROM visit_reviews WHERE id = ?',
       [reviewId],
@@ -266,7 +265,7 @@ export async function deleteReview(db: SQLiteDatabase, reviewId: string): Promis
       await txn.runAsync('DELETE FROM visits WHERE id = ?', [review.visit_id]);
       visitDeleted = true;
     }
-  });
+  }));
   notifyJournalChanged();
   return { visitDeleted };
 }

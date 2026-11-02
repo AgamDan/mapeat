@@ -95,7 +95,8 @@ export async function initDatabase(db: SQLiteDatabase) {
 }
 
 export async function migrateDatabase(db: SQLiteDatabase) {
-  await db.execAsync('PRAGMA journal_mode = WAL; PRAGMA foreign_keys = ON;');
+  // busy_timeout lets main-connection writes wait for a transaction connection instead of failing.
+  await db.execAsync('PRAGMA journal_mode = WAL; PRAGMA busy_timeout = 5000;');
   const row = await db.getFirstAsync<{ user_version: number }>('PRAGMA user_version;');
   const current = row?.user_version ?? 0;
   for (let version = current; version < MIGRATIONS.length; version++) {

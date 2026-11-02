@@ -18,86 +18,106 @@ export type CatalogStatus = 'idle' | 'loading' | 'zoomIn' | 'error';
 
 /**
  * Keeps the visible map area's venues in sync: shows cached places immediately, then fetches
- * missing or week-old tiles from Overpass one request at a time.
+ * missing or month-old tiles from Overpass one request at a time.
  */
 export function useCatalog() {
   const db = useSQLiteContext();
   const [venues, setVenues] = useState<Venue[]>([]);
   const [status, setStatus] = useState<CatalogStatus>('idle');
   const latestRegion = useRef<Region | null>(null);
-  const fetching = useRef(false);
+  const running = useRef(false);
+  // Set while a sync is running if another one was requested; `true` means a forced retry.
+  const pending = useRef<boolean | null>(null);
   const lastFailureAt = useRef(0);
+  const showSeq = useRef(0);
 
   const showCached = useCallback(
     async (region: Region) => {
-      setVenues(await getPlacesInBounds(db, boundsOfRegion(region), MAX_MARKERS));
+      const seq = ++showSeq.current;
+      const found = await getPlacesInBounds(db, boundsOfRegion(region), MAX_MARKERS);
+      // Ignore results that arrive after a newer query was started.
+      if (seq === showSeq.current) setVenues(found);
     },
     [db],
   );
 
-  const sync = useCallback(
-    async (force: boolean): Promise<void> => {
-      let ignoreCooldown = force;
-      // Bounded: if the map keeps moving during fetches, load the latest area a few times, then stop.
-      for (let round = 0; round < 3; round++) {
-        const region = latestRegion.current;
-        if (!region) return;
-        if (region.latitudeDelta > MAX_LATITUDE_DELTA) {
-          setStatus('zoomIn');
-          return;
-        }
-        await showCached(region);
-        if (fetching.current) return;
-
-        const tiles = tileKeysForBounds(boundsOfRegion(region));
-        const stale = (await getStaleTiles(db, tiles, Date.now() - REFRESH_AFTER_MS)).slice(
-          0,
-          MAX_TILES_PER_FETCH,
-        );
-        if (stale.length === 0) {
-          setStatus('idle');
-          return;
-        }
-        if (!ignoreCooldown && Date.now() - lastFailureAt.current < FAILURE_COOLDOWN_MS) {
-          setStatus('error');
-          return;
-        }
-
-        fetching.current = true;
-        setStatus('loading');
-        try {
-          const area = boundsOfTiles(stale);
-          const fetched = await fetchVenues(area);
-          await replacePlacesInArea(db, area, fetched, stale, Date.now());
-          lastFailureAt.current = 0;
-          setStatus('idle');
-        } catch {
-          lastFailureAt.current = Date.now();
-          setStatus('error');
-        } finally {
-          fetching.current = false;
-        }
-
-        if (latestRegion.current) await showCached(latestRegion.current);
-        // Stop unless the map moved while we were fetching.
-        if (latestRegion.current === region) return;
-        ignoreCooldown = false;
+  /** One pass for the latest region: show the cache, then fetch stale tiles if allowed. */
+  const syncOnce = useCallback(
+    async (force: boolean) => {
+      const region = latestRegion.current;
+      if (!region) return;
+      if (region.latitudeDelta > MAX_LATITUDE_DELTA) {
+        setStatus('zoomIn');
+        return;
       }
+      await showCached(region);
+
+      const tiles = tileKeysForBounds(boundsOfRegion(region));
+      const stale = (await getStaleTiles(db, tiles, Date.now() - REFRESH_AFTER_MS)).slice(
+        0,
+        MAX_TILES_PER_FETCH,
+      );
+      if (stale.length === 0) {
+        setStatus('idle');
+        return;
+      }
+      if (!force && Date.now() - lastFailureAt.current < FAILURE_COOLDOWN_MS) {
+        setStatus('error');
+        return;
+      }
+
+      setStatus('loading');
+      try {
+        const area = boundsOfTiles(stale);
+        const fetched = await fetchVenues(area);
+        await replacePlacesInArea(db, area, fetched, stale, Date.now());
+        lastFailureAt.current = 0;
+        setStatus('idle');
+      } catch {
+        lastFailureAt.current = Date.now();
+        setStatus('error');
+      }
+      if (latestRegion.current) await showCached(latestRegion.current);
     },
     [db, showCached],
+  );
+
+  /** Single-flight: never more than one sync (and so one Overpass request) at a time. */
+  const requestSync = useCallback(
+    (force: boolean) => {
+      pending.current = force || pending.current === true;
+      if (running.current) {
+        // Keep the map responsive while a fetch runs: show what's cached for the new area.
+        if (latestRegion.current) void showCached(latestRegion.current);
+        return;
+      }
+      running.current = true;
+      void (async () => {
+        try {
+          while (pending.current !== null) {
+            const nextForce = pending.current;
+            pending.current = null;
+            await syncOnce(nextForce);
+          }
+        } finally {
+          running.current = false;
+        }
+      })();
+    },
+    [showCached, syncOnce],
   );
 
   const onRegionChange = useCallback(
     (region: Region) => {
       latestRegion.current = region;
-      void sync(false);
+      requestSync(false);
     },
-    [sync],
+    [requestSync],
   );
 
   const retry = useCallback(() => {
-    void sync(true);
-  }, [sync]);
+    requestSync(true);
+  }, [requestSync]);
 
   return { venues, status, onRegionChange, retry };
 }
