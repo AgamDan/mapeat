@@ -4,6 +4,22 @@ Last updated: November 2, 2026
 
 Older entries below mention earlier paths (`mapeat-starter/`, `MAPEAT_CODEX_HANDOFF (1).md`, `docs/superpowers/specs/`). They are kept as written; see the November 2 restructure entry for the current locations.
 
+## Working mode (from November 3, 2026) — parallel sub-agents
+
+The user asked that work be split across parallel sub-agents where safe. Continue this in future sessions:
+
+1. Before splitting a milestone, the lead defines and commits the shared contract: types, SQLite schema/migration, data-layer function signatures, route paths (with stub route files and `_layout.tsx` registration), and i18n keys (English + Hebrew). All `npx expo install` runs happen before the split.
+2. Each sub-agent owns a file-disjoint chunk in its own git worktree + branch outside the repo (e.g. `git worktree add ..\mapeat-wt\m3-timeline -b m3-timeline`). In the worktree: `npm ci`, generate route types with a short `$env:CI='1'; npx expo start --go --port 8082` (+1 per agent), never the default port.
+3. Sub-agents never edit `package.json`, `package-lock.json`, `src/i18n/en.ts`, `src/i18n/he.ts`, or `src/app/_layout.tsx`; they report needed strings (English + Hebrew) and layout wiring for the lead to merge.
+4. Sub-agent prompts are self-contained (spec decisions, repo rules, owned files, contract) and say: report open questions instead of guessing. Questions to the user stay in the main chat, always with options.
+5. Each sub-agent runs `npx tsc --noEmit` and `npx expo lint` in its worktree before reporting.
+6. The lead merges each branch, adds strings, wires layout, runs typecheck + lint + iOS export once on the merged result, then removes worktrees and branches.
+7. Read-only checks (tsc, lint, iOS/web export) and independent doc lookups may run in parallel; a code-review agent reviews each finished milestone while the next starts.
+8. Sequential only: single dependency chains, package installs, Overpass/network requests (one at a time), commits and pushes on `main`.
+9. When splitting, tell the user in one line which agent owns which files.
+
+Expected split value: M2 small (visit form vs. place visit history, after the data layer), M3 high (wishlist / tags / timeline), M4 medium (menu-photo vs. visit-photo UI after one storage layer), M5 low, M6 parallel read-only audits (RTL, error states).
+
 ## Milestone 1 — November 3, 2026
 
 - Built M1 (map + catalog): Apple Maps via `react-native-maps` behind `src/features/map/journal-map.tsx` (web stub), SQLite cache (`src/data/`), Overpass client with fallback servers, tile-based refresh, place profile sheet (`src/app/place/[id].tsx`), "locate me" (permission only on tap), ⓘ OpenStreetMap credit on the map. Added `react-native-maps`, `expo-sqlite`, `expo-location`, dev-only `osm-pbf-parser`, `metro.config.js` (expo-sqlite web).

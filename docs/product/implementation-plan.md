@@ -60,7 +60,7 @@ Place summary shows each person's own average; a missing review is absent, never
 - **Live:** for tiles that are missing or older than 30 days (abroad, empty areas), query Overpass for the visible map area for `amenity` in `restaurant|cafe|fast_food|bar|pub|ice_cream`, only when zoomed in enough (bounded area), with a timeout and sequential fallback servers.
 - Cache results in `places` keyed by OSM ID; show cached places immediately and refresh in the background.
 - On failure: keep cached data and retry later. The map shows a loading or error message only when no places are visible. Never parallelize retries; space them out; identify the app in the User-Agent.
-- Show "© OpenStreetMap contributors" via an ⓘ button on the map (tap to reveal; the text links to the OSM copyright page) and on the place profile. Show a Commons photo only with source, author, and license; otherwise "No photo yet".
+- Show "© OpenStreetMap contributors" on the place profile (linking to the OSM page). The map itself shows no OSM credit so Apple Maps' required logo (bottom-left) stays unobstructed. Show a Commons photo only with source, author, and license; otherwise "No photo yet".
 
 ## Milestones
 

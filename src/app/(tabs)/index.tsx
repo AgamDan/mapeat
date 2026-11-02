@@ -1,7 +1,6 @@
 import * as Location from 'expo-location';
 import { router } from 'expo-router';
 import { SymbolView } from 'expo-symbols';
-import * as WebBrowser from 'expo-web-browser';
 import { useCallback, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -29,7 +28,6 @@ export default function MapScreen() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showsUserLocation, setShowsUserLocation] = useState(false);
   const [locationDenied, setLocationDenied] = useState(false);
-  const [attributionOpen, setAttributionOpen] = useState(false);
   const mapRef = useRef<JournalMapHandle>(null);
 
   const venueLabel = useCallback(
@@ -112,36 +110,6 @@ export default function MapScreen() {
       </View>
 
       <SafeAreaView edges={['bottom']} pointerEvents="box-none" style={styles.bottom}>
-        <View style={styles.attribution}>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={t('map.attributionInfo')}
-            accessibilityState={{ expanded: attributionOpen }}
-            onPress={() => setAttributionOpen((open) => !open)}
-            hitSlop={8}
-            style={({ pressed }) => [
-              styles.attributionButton,
-              { backgroundColor: theme.card },
-              pressed && styles.pressed,
-            ]}>
-            <SymbolView
-              name={{ ios: 'info', android: 'info', web: 'info' }}
-              size={14}
-              tintColor={theme.textSecondary}
-            />
-          </Pressable>
-          {attributionOpen ? (
-            <Pressable
-              accessibilityRole="link"
-              onPress={() => WebBrowser.openBrowserAsync('https://www.openstreetmap.org/copyright')}
-              hitSlop={8}
-              style={[styles.attributionLabel, { backgroundColor: theme.card }]}>
-              <ThemedText type="small" themeColor="textSecondary" style={styles.attributionText}>
-                {t('map.attribution')}
-              </ThemedText>
-            </Pressable>
-          ) : null}
-        </View>
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={t('map.locate')}
@@ -199,37 +167,13 @@ const styles = StyleSheet.create({
     bottom: 0,
     start: 0,
     end: 0,
+    // Apple Maps always draws its logo bottom-left, so keep the locate button bottom-right in both languages.
+    direction: 'ltr',
     flexDirection: 'row',
     alignItems: 'flex-end',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-end',
     paddingHorizontal: Spacing.three,
     paddingBottom: Spacing.two,
-  },
-  attribution: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.one,
-    flexShrink: 1,
-    marginEnd: Spacing.two,
-  },
-  attributionButton: {
-    width: 32,
-    height: 32,
-    borderRadius: Radius.pill,
-    alignItems: 'center',
-    justifyContent: 'center',
-    opacity: 0.9,
-  },
-  attributionLabel: {
-    flexShrink: 1,
-    paddingHorizontal: Spacing.two,
-    paddingVertical: Spacing.half,
-    borderRadius: Radius.small,
-    opacity: 0.9,
-  },
-  attributionText: {
-    fontSize: 11,
-    lineHeight: 15,
   },
   locate: {
     ...shadow,

@@ -1,6 +1,8 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createContext, use, useCallback, useEffect, useMemo, useState, type PropsWithChildren } from 'react';
 
+import { isPersonId, type PersonId } from '@/data/people';
+
 export type Language = 'he' | 'en';
 export type Appearance = 'system' | 'light' | 'dark';
 
@@ -8,16 +10,19 @@ type StoredSettings = {
   /** `null` until the user picks a language on first launch. */
   language: Language | null;
   appearance: Appearance;
+  /** Who last wrote a review on this phone; the "Writing as" default. */
+  writer: PersonId;
 };
 
 type SettingsContextValue = StoredSettings & {
   ready: boolean;
   setLanguage: (language: Language) => void;
   setAppearance: (appearance: Appearance) => void;
+  setWriter: (writer: PersonId) => void;
 };
 
 const STORAGE_KEY = 'mapeat.settings.v1';
-const DEFAULTS: StoredSettings = { language: null, appearance: 'system' };
+const DEFAULTS: StoredSettings = { language: null, appearance: 'system', writer: 'a' };
 
 const SettingsContext = createContext<SettingsContextValue | null>(null);
 
@@ -29,6 +34,7 @@ function parse(raw: string | null): StoredSettings {
       language: value.language === 'he' || value.language === 'en' ? value.language : null,
       appearance:
         value.appearance === 'light' || value.appearance === 'dark' ? value.appearance : 'system',
+      writer: isPersonId(value.writer) ? value.writer : 'a',
     };
   } catch {
     return DEFAULTS;
@@ -68,6 +74,7 @@ export function SettingsProvider({ children }: PropsWithChildren) {
       ready,
       setLanguage: (language) => update({ language }),
       setAppearance: (appearance) => update({ appearance }),
+      setWriter: (writer) => update({ writer }),
     }),
     [settings, ready, update],
   );

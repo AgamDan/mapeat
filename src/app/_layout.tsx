@@ -101,6 +101,18 @@ function AppShell() {
                   headerShown: false,
                 }}
               />
+              <Stack.Screen
+                name="visit/new"
+                options={{ presentation: 'modal', title: t('visit.newTitle') }}
+              />
+              <Stack.Screen
+                name="visit/[id]/index"
+                options={{ presentation: 'modal', title: t('visit.detailTitle') }}
+              />
+              <Stack.Screen
+                name="visit/[id]/review"
+                options={{ presentation: 'modal', title: t('visit.reviewTitle') }}
+              />
             </Stack.Protected>
             <Stack.Protected guard={language === null}>
               <Stack.Screen name="welcome" options={{ headerShown: false }} />

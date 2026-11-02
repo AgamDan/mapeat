@@ -97,10 +97,11 @@ export async function replacePlacesInArea(
     } finally {
       await insert.finalizeAsync();
     }
-    // M2: also keep places referenced by the journal (visits, wishlist) here.
+    // Places in the journal (visited or wishlisted) are kept even if OpenStreetMap drops them.
     await txn.runAsync(
       `DELETE FROM places
-       WHERE lat BETWEEN ? AND ? AND lon BETWEEN ? AND ? AND fetched_at < ?`,
+       WHERE lat BETWEEN ? AND ? AND lon BETWEEN ? AND ? AND fetched_at < ?
+         AND id NOT IN (SELECT place_id FROM journal_places)`,
       [area.south, area.north, area.west, area.east, fetchedAt],
     );
     for (const key of tileKeys) {

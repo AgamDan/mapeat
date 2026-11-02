@@ -30,9 +30,19 @@ export function useLanguage() {
 
 export function useT() {
   const { language } = useLanguage();
-  return useCallback((key: TranslationKey) => dictionaries[language][key], [language]);
+  return useCallback(
+    (key: TranslationKey, vars?: TranslationVars) => translate(language, key, vars),
+    [language],
+  );
 }
 
-export function translate(language: Language, key: TranslationKey) {
-  return dictionaries[language][key];
+/** Values for `{placeholder}`s in a translation, e.g. `t('visit.addReviewFor', { name })`. */
+export type TranslationVars = Record<string, string | number>;
+
+export function translate(language: Language, key: TranslationKey, vars?: TranslationVars) {
+  const text: string = dictionaries[language][key];
+  if (!vars) return text;
+  return text.replace(/\{(\w+)\}/g, (match, name: string) =>
+    name in vars ? String(vars[name]) : match,
+  );
 }
