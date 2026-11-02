@@ -70,7 +70,6 @@ export const en = {
   'date.yesterday': 'Yesterday',
   'settings.people': 'Our names',
   'settings.personName': 'Name',
-  'settings.saveNames': 'Save names',
   'timeline.title': 'Timeline',
   'timeline.emptyTitle': 'No visits yet',
   'timeline.emptyBody': 'Every place you visit together will appear here as a postcard, newest first.',

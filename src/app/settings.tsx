@@ -2,6 +2,7 @@ import { ScrollView, StyleSheet } from 'react-native';
 
 import { ChoiceGroup } from '@/components/choice-group';
 import { Spacing, MaxContentWidth } from '@/constants/theme';
+import { PeopleEditor } from '@/features/people/people-editor';
 import { translate, useLanguage, useT } from '@/i18n/i18n';
 import { useSettings, type Appearance, type Language } from '@/settings/settings-provider';
 
@@ -11,7 +12,7 @@ export default function SettingsScreen() {
   const { appearance, setAppearance, setLanguage } = useSettings();
 
   return (
-    <ScrollView contentContainerStyle={styles.content}>
+    <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
       <ChoiceGroup<Language>
         label={t('settings.language')}
         choices={[
@@ -31,6 +32,7 @@ export default function SettingsScreen() {
         value={appearance}
         onChange={setAppearance}
       />
+      <PeopleEditor />
     </ScrollView>
   );
 }

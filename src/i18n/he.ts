@@ -72,7 +72,6 @@ export const he: Translations = {
   'date.yesterday': 'אתמול',
   'settings.people': 'השמות שלנו',
   'settings.personName': 'שם',
-  'settings.saveNames': 'שמירת השמות',
   'timeline.title': 'ציר זמן',
   'timeline.emptyTitle': 'עדיין אין ביקורים',
   'timeline.emptyBody': 'כל מקום שתבקרו בו יחד יופיע כאן כגלויה, מהחדש לישן.',
