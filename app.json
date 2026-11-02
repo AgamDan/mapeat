@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "mapeat-starter",
-    "slug": "mapeat-starter",
+    "name": "mapeat",
+    "slug": "mapeat",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "mapeatstarter",
+    "scheme": "mapeat",
     "userInterfaceStyle": "automatic",
     "ios": {
       "icon": "./assets/expo.icon"

@@ -1,6 +1,16 @@
 # MapEat — Project Summary and Codex Handoff
 
-Last updated: October 31, 2026
+Last updated: November 2, 2026
+
+Older entries below mention earlier paths (`mapeat-starter/`, `MAPEAT_CODEX_HANDOFF (1).md`, `docs/superpowers/specs/`). They are kept as written; see the November 2 restructure entry for the current locations.
+
+## Restructure — November 2, 2026
+
+- User requested app code at the repository root and all documentation in one logical place. Chosen options: app at root, docs grouped by type, app renamed to `mapeat`, full scope.
+- Moved the Expo app from `mapeat-starter/` to the root with `git mv` (history preserved): `src/`, `assets/`, `scripts/`, `app.json`, `package.json`, `package-lock.json`, `tsconfig.json`, `LICENSE`, `AGENTS.md`, `.vscode/extensions.json`, `.vscode/settings.json`. Merged the starter `.gitignore` into the root one. Removed the generic Expo starter README; added a root `README.md`.
+- Renamed `package.json` name, `app.json` name/slug, and URL scheme from `mapeat-starter` / `mapeatstarter` to `mapeat`. No dependency versions changed.
+- Docs now live under `docs/`, indexed by `docs/README.md`: `docs/product/design-spec.md` (was `docs/superpowers/specs/2026-10-31-mapeat-design.md`), `docs/research/`, and `docs/status/handoff.md` (this file, was `MAPEAT_CODEX_HANDOFF (1).md` at the root).
+- `node_modules` was not present; run `npm ci` at the root before `npx tsc --noEmit` or `npx expo start --go`. Any previous `mapeat-starter/node_modules` must not be reused.
 
 ## Continuation status — November 2, 2026
 
