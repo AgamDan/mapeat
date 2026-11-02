@@ -1,9 +1,10 @@
-import { useImperativeHandle, useRef, type Ref } from 'react';
+import { useCallback, useImperativeHandle, useRef, type Ref } from 'react';
 import { StyleSheet, View } from 'react-native';
-import MapView, { Marker, type MKPointOfInterestCategoryType } from 'react-native-maps';
+import MapView, { Marker, type MapPressEvent, type MKPointOfInterestCategoryType } from 'react-native-maps';
 
 import type { Region } from '@/features/catalog/tiles';
 import type { Venue } from '@/features/catalog/types';
+import { venueAtPoint, type Size } from '@/features/map/hit-test';
 import { useTheme } from '@/hooks/use-theme';
 import type { ColorScheme } from '@/constants/theme';
 
@@ -38,6 +39,11 @@ const ORIENTATION_POIS: MKPointOfInterestCategoryType[] = [
   'hospital',
 ];
 
+/** Tap tolerance around a venue dot, in points (about a fingertip). */
+const TAP_RADIUS = 24;
+/** A marker tap and the map tap it also triggers arrive ~300 ms apart; treat them as one. */
+const SELECT_DEBOUNCE_MS = 800;
+
 /** The app's only map. Swap this file (and its `.web` sibling) to change map renderers. */
 export function JournalMap({
   ref,
@@ -52,6 +58,9 @@ export function JournalMap({
 }: JournalMapProps) {
   const mapRef = useRef<MapView>(null);
   const theme = useTheme();
+  const region = useRef<Region>(initialRegion);
+  const size = useRef<Size>({ width: 0, height: 0 });
+  const lastSelectAt = useRef(0);
 
   useImperativeHandle(
     ref,
@@ -65,45 +74,79 @@ export function JournalMap({
     [],
   );
 
+  const select = useCallback(
+    (id: string) => {
+      const now = Date.now();
+      if (now - lastSelectAt.current < SELECT_DEBOUNCE_MS) return;
+      lastSelectAt.current = now;
+      onSelectVenue(id);
+    },
+    [onSelectVenue],
+  );
+
+  // Every tap on the map arrives here, including taps on markers. If the marker itself didn't
+  // report the tap (custom marker views can end up with a tiny native hit area on iOS), pick the
+  // venue drawn under the finger.
+  const onMapPress = useCallback(
+    (event: MapPressEvent) => {
+      if (Date.now() - lastSelectAt.current < SELECT_DEBOUNCE_MS) return;
+      const id = venueAtPoint(venues, region.current, size.current, event.nativeEvent.position, TAP_RADIUS);
+      if (id) select(id);
+    },
+    [venues, select],
+  );
+
   return (
-    <MapView
-      ref={mapRef}
+    <View
       style={StyleSheet.absoluteFill}
-      initialRegion={initialRegion}
-      userInterfaceStyle={scheme}
-      pointsOfInterestFilter={ORIENTATION_POIS}
-      showsUserLocation={showsUserLocation}
-      showsCompass={false}
-      pitchEnabled={false}
-      rotateEnabled={false}
-      onRegionChangeComplete={(region) => onRegionChangeComplete(region)}>
-      {venues.map((venue) => {
-        const selected = venue.id === selectedId;
-        return (
-          <Marker
-            // Re-mount on selection change so the custom view re-renders on the native side.
-            key={`${venue.id}:${selected ? 1 : 0}`}
-            coordinate={{ latitude: venue.lat, longitude: venue.lon }}
-            anchor={{ x: 0.5, y: 0.5 }}
-            tracksViewChanges={false}
-            accessibilityLabel={venueLabel(venue)}
-            zIndex={selected ? 2 : 1}
-            onPress={() => onSelectVenue(venue.id)}>
-            <View style={styles.hitArea}>
-              <View
-                style={[
-                  selected ? styles.selected : styles.dot,
-                  {
-                    backgroundColor: selected ? theme.accent : theme.textSecondary,
-                    borderColor: theme.card,
-                  },
-                ]}
-              />
-            </View>
-          </Marker>
-        );
-      })}
-    </MapView>
+      onLayout={(event) => {
+        size.current = event.nativeEvent.layout;
+      }}>
+      <MapView
+        ref={mapRef}
+        style={StyleSheet.absoluteFill}
+        initialRegion={initialRegion}
+        userInterfaceStyle={scheme}
+        pointsOfInterestFilter={ORIENTATION_POIS}
+        showsUserLocation={showsUserLocation}
+        showsCompass={false}
+        pitchEnabled={false}
+        rotateEnabled={false}
+        onPress={onMapPress}
+        onRegionChangeComplete={(next) => {
+          region.current = next;
+          onRegionChangeComplete(next);
+        }}>
+        {venues.map((venue) => {
+          const selected = venue.id === selectedId;
+          return (
+            <Marker
+              // Re-mount on selection change so the custom view re-renders on the native side.
+              key={`${venue.id}:${selected ? 1 : 0}`}
+              coordinate={{ latitude: venue.lat, longitude: venue.lon }}
+              anchor={{ x: 0.5, y: 0.5 }}
+              tracksViewChanges={false}
+              accessibilityLabel={venueLabel(venue)}
+              zIndex={selected ? 2 : 1}
+              onPress={() => select(venue.id)}>
+              {/* collapsable={false}: otherwise the new architecture flattens this layout-only
+                  wrapper, the native marker shrinks to the dot, and taps miss it. */}
+              <View collapsable={false} style={styles.hitArea}>
+                <View
+                  style={[
+                    selected ? styles.selected : styles.dot,
+                    {
+                      backgroundColor: selected ? theme.accent : theme.textSecondary,
+                      borderColor: theme.card,
+                    },
+                  ]}
+                />
+              </View>
+            </Marker>
+          );
+        })}
+      </MapView>
+    </View>
   );
 }
 
