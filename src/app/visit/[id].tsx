@@ -15,6 +15,7 @@ import type { Venue } from '@/features/catalog/types';
 import { usePeople } from '@/features/people/use-people';
 import { VisitCard } from '@/features/visits/visit-card';
 import { useResolvedScheme, useTheme } from '@/hooks/use-theme';
+import type { TranslationKey } from '@/i18n/en';
 import { useLanguage, useT } from '@/i18n/i18n';
 import type { LocalDate } from '@/lib/dates';
 
@@ -88,12 +89,12 @@ export default function VisitScreen() {
   });
   const alertOptions = { userInterfaceStyle: scheme } as const;
 
-  const run = async (action: () => Promise<void>) => {
+  const run = async (action: () => Promise<void>, failureKey: TranslationKey) => {
     setBusy(true);
     try {
       await action();
     } catch {
-      Alert.alert(t('visit.saveFailed'), undefined, undefined, alertOptions);
+      Alert.alert(t(failureKey), undefined, undefined, alertOptions);
     } finally {
       setBusy(false);
     }
@@ -101,7 +102,7 @@ export default function VisitScreen() {
 
   const changeDate = (date: LocalDate) => {
     if (date === visit.visitDate) return;
-    run(() => updateVisitDate(db, visit.id, date));
+    run(() => updateVisitDate(db, visit.id, date), 'visit.changeDateFailed');
   };
 
   const confirmDeleteReview = (person: Person, review: VisitReview) => {
@@ -125,7 +126,7 @@ export default function VisitScreen() {
                 setClosing(false);
                 throw error;
               }
-            }),
+            }, 'visit.deleteFailed'),
         },
       ],
       alertOptions,
@@ -151,7 +152,7 @@ export default function VisitScreen() {
                 setClosing(false);
                 throw error;
               }
-            }),
+            }, 'visit.deleteFailed'),
         },
       ],
       alertOptions,

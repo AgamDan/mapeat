@@ -1,3 +1,6 @@
+import type { SQLiteDatabase } from 'expo-sqlite';
+import { Platform } from 'react-native';
+
 /**
  * Serializes every database write. expo-sqlite runs each exclusive transaction on its own
  * connection without a busy timeout, so two overlapping writers (e.g. a catalog refresh and a
@@ -12,4 +15,17 @@ export function enqueueWrite<T>(task: () => Promise<T>): Promise<T> {
   // Keep the chain alive after failures; callers still see their own rejection.
   tail = run.catch(() => undefined);
   return run;
+}
+
+/**
+ * A queued write transaction. On iPhone it is exclusive (its own connection, so unrelated reads
+ * can't slip into it); the web preview doesn't support that, and the queue already keeps writes
+ * from interleaving there.
+ */
+export function writeTransaction(db: SQLiteDatabase, task: (txn: SQLiteDatabase) => Promise<void>) {
+  return enqueueWrite(() =>
+    Platform.OS === 'web'
+      ? db.withTransactionAsync(() => task(db))
+      : db.withExclusiveTransactionAsync((txn) => task(txn)),
+  );
 }

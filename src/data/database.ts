@@ -1,5 +1,7 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
 
+import { writeTransaction } from '@/data/write-queue';
+
 import { ensurePeople } from '@/data/people';
 import { seedStarterCatalog } from '@/data/starter-catalog';
 
@@ -100,7 +102,7 @@ export async function migrateDatabase(db: SQLiteDatabase) {
   const row = await db.getFirstAsync<{ user_version: number }>('PRAGMA user_version;');
   const current = row?.user_version ?? 0;
   for (let version = current; version < MIGRATIONS.length; version++) {
-    await db.withExclusiveTransactionAsync(async (txn) => {
+    await writeTransaction(db, async (txn) => {
       await txn.execAsync(MIGRATIONS[version]);
       await txn.execAsync(`PRAGMA user_version = ${version + 1};`);
     });

@@ -86,7 +86,7 @@ function ReviewHalf({
   const t = useT();
   const ink = theme[person.color];
   const openReview = () =>
-    router.push({ pathname: '/visit/[id]/review', params: { id: visit.id, author: person.id } });
+    router.push({ pathname: '/visit/review', params: { id: visit.id, author: person.id } });
 
   if (!review) {
     return (

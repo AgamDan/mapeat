@@ -1,5 +1,7 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
 
+import { writeTransaction } from '@/data/write-queue';
+
 import { tileKeyOf } from '@/features/catalog/tiles';
 
 /** Row layout written by scripts/build-catalog.mjs (see its FIELDS list). */
@@ -47,7 +49,7 @@ export async function seedStarterCatalog(db: SQLiteDatabase) {
   const fetchedAt = Date.parse(catalog.version);
   const tileKeys = new Set<string>();
 
-  await db.withExclusiveTransactionAsync(async (txn) => {
+  await writeTransaction(db, async (txn) => {
     for (let start = 0; start < catalog.places.length; start += ROWS_PER_STATEMENT) {
       const rows = catalog.places.slice(start, start + ROWS_PER_STATEMENT);
       const params: (string | number | null)[] = [];

@@ -106,11 +106,11 @@ function AppShell() {
                 options={{ presentation: 'modal', title: t('visit.newTitle') }}
               />
               <Stack.Screen
-                name="visit/[id]/index"
+                name="visit/[id]"
                 options={{ presentation: 'modal', title: t('visit.detailTitle') }}
               />
               <Stack.Screen
-                name="visit/[id]/review"
+                name="visit/review"
                 options={{ presentation: 'modal', title: t('visit.reviewTitle') }}
               />
             </Stack.Protected>

@@ -13,12 +13,20 @@ The user asked that work be split across parallel sub-agents where safe. Continu
 3. Sub-agents never edit `package.json`, `package-lock.json`, `src/i18n/en.ts`, `src/i18n/he.ts`, or `src/app/_layout.tsx`; they report needed strings (English + Hebrew) and layout wiring for the lead to merge.
 4. Sub-agent prompts are self-contained (spec decisions, repo rules, owned files, contract) and say: report open questions instead of guessing. Questions to the user stay in the main chat, always with options.
 5. Each sub-agent runs `npx tsc --noEmit` and `npx expo lint` in its worktree before reporting.
-6. The lead merges each branch, adds strings, wires layout, runs typecheck + lint + iOS export once on the merged result, then removes worktrees and branches.
+6. The lead merges each branch, adds strings, wires layout, runs typecheck + lint + iOS export once on the merged result, then removes worktrees and branches. On Windows `git worktree remove` fails on long `node_modules` paths: delete the folder with `cmd /c rmdir /s /q "\\?\<full path>"`, then `git worktree prune`.
 7. Read-only checks (tsc, lint, iOS/web export) and independent doc lookups may run in parallel; a code-review agent reviews each finished milestone while the next starts.
 8. Sequential only: single dependency chains, package installs, Overpass/network requests (one at a time), commits and pushes on `main`.
 9. When splitting, tell the user in one line which agent owns which files.
 
 Expected split value: M2 small (visit form vs. place visit history, after the data layer), M3 high (wishlist / tags / timeline), M4 medium (menu-photo vs. visit-photo UI after one storage layer), M5 low, M6 parallel read-only audits (RTL, error states).
+
+## Milestone 2 — November 3, 2026
+
+- Built M2 (first visit) in the parallel working mode: lead committed the contract (migration 3, `src/data/visits.ts`, people Artur/Agam, "Writing as" setting, date helpers, strings, stub routes, shared `DateField`); agent `m2-form` built the visit/review forms + drafts, agent `m2-history` built place history, visit card, visit detail. Lead added "Our names" in Settings and merged.
+- Code review of M1 + contract found three issues, all fixed: Overpass 200-with-`remark` partial results no longer wipe the cache; catalog sync is single-flight; all DB writes go through one queue (`src/data/write-queue.ts`, `writeTransaction`) with `busy_timeout`.
+- Route note: `visit/[id]/index.tsx` produced different typed-route names under `expo start` vs `expo lint`/`export`; routes are now flat (`visit/[id].tsx`, `visit/review.tsx`, `visit/new.tsx`).
+- Verified: typecheck, lint, iOS + web bundles, 24 data-layer checks, full web click-through in Hebrew (add visit → partner review → averages). **Not yet verified on the iPhone.** Commits still local only (waiting for `Likva32` to be added as collaborator).
+- Next: M3 (wishlist, tags, timeline) — high parallel value.
 
 ## Milestone 1 — November 3, 2026
 

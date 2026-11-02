@@ -1,6 +1,6 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
 
-import { enqueueWrite } from '@/data/write-queue';
+import { writeTransaction } from '@/data/write-queue';
 import { isVenueKind, type Bounds, type Venue } from '@/features/catalog/types';
 
 type PlaceRow = {
@@ -81,7 +81,7 @@ export async function replacePlacesInArea(
   tileKeys: string[],
   fetchedAt: number,
 ) {
-  await enqueueWrite(() => db.withExclusiveTransactionAsync(async (txn) => {
+  await writeTransaction(db, async (txn) => {
     const insert = await txn.prepareAsync(
       `INSERT OR REPLACE INTO places
        (id, osm_type, osm_id, kind, name, name_he, name_en, lat, lon, cuisine, street, housenumber,
@@ -111,7 +111,7 @@ export async function replacePlacesInArea(
         fetchedAt,
       ]);
     }
-  }));
+  });
 }
 
 /** Which of `tileKeys` were never fetched or were fetched before `freshAfter`. */

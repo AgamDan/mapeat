@@ -150,12 +150,15 @@ export default function PlaceScreen() {
             <ThemedText themeColor="textSecondary">{t('place.noVisitsYet')}</ThemedText>
           )
         ) : journalError ? (
-          <Pressable
-            accessibilityRole="button"
-            onPress={retryJournal}
-            style={({ pressed }) => [styles.button, { borderColor: theme.line }, pressed && styles.pressed]}>
-            <ThemedText type="defaultBold">{t('map.retry')}</ThemedText>
-          </Pressable>
+          <View style={styles.section}>
+            <ThemedText themeColor="textSecondary">{t('place.journalLoadFailed')}</ThemedText>
+            <Pressable
+              accessibilityRole="button"
+              onPress={retryJournal}
+              style={({ pressed }) => [styles.button, { borderColor: theme.line }, pressed && styles.pressed]}>
+              <ThemedText type="defaultBold">{t('map.retry')}</ThemedText>
+            </Pressable>
+          </View>
         ) : (
           <ActivityIndicator color={theme.accent} />
         )}

@@ -68,7 +68,7 @@ Each milestone ends with `npx tsc --noEmit`, `npx expo lint`, and a check on the
 
 Progress: **M0 built November 2, 2026** — typecheck, lint, iOS bundle, and the web flow (first-launch choice → tabs → settings language/appearance switch → persisted after reload) verified. **iPhone check pending** (especially RTL via the `direction` style and the native tab bar in Hebrew).
 
-**M1 built November 3, 2026** — Apple Maps (`JournalMap`), built-in Israel catalog (7,210 places; Tel Aviv count matches live Overpass), Overpass client with fallback, SQLite cache with tiles, place profile sheet (bilingual names, cuisine, address, hours, website, Commons photo with license or "No photo yet", Open in Apple Maps, OSM credit), "locate me" (permission only on tap), ⓘ map credit. Verified: typecheck, lint, iOS + web bundles; catalog/DB logic against Node SQLite and live Commons. Live Overpass was overloaded during testing (all instances 502/timeout), so the live path is verified only for failure handling. **iPhone check pending.**
+**M2 built November 3, 2026** — local journal: add a visit (date, "Writing as" Artur/Agam, whole 1–10 rating, optional notes), the partner's review on the same visit, edit either review, change date, delete with confirmation, per-person averages, postcard visit cards, persistent drafts, idempotent saves, journal places kept through catalog refreshes, all writes serialized. Built by two parallel sub-agents (forms vs. history) on a committed contract. Verified: typecheck, lint, iOS + web bundles, 24 data-layer checks, and a full web click-through in Hebrew. **iPhone check pending.** — Apple Maps (`JournalMap`), built-in Israel catalog (7,210 places; Tel Aviv count matches live Overpass), Overpass client with fallback, SQLite cache with tiles, place profile sheet (bilingual names, cuisine, address, hours, website, Commons photo with license or "No photo yet", Open in Apple Maps, OSM credit), "locate me" (permission only on tap), ⓘ map credit. Verified: typecheck, lint, iOS + web bundles; catalog/DB logic against Node SQLite and live Commons. Live Overpass was overloaded during testing (all instances 502/timeout), so the live path is verified only for failure handling. **iPhone check pending.**
 
 | # | Milestone | Done when |
 | --- | --- | --- |
@@ -83,7 +83,7 @@ Progress: **M0 built November 2, 2026** — typecheck, lint, iOS bundle, and the
 ## Open questions to resolve when their milestone starts
 
 - M1: done with defaults — zoom limit ~5 km map height, 250 nearest markers, 30-day refresh, two Overpass servers. Revisit after phone testing (marker density, clustering).
-- M2: names and colors of the two people (defaults: terracotta and sea blue); whether a visit can have an optional time. Journal places must be excluded from catalog cleanup in `replacePlacesInArea`.
+- M2: done. People default to Artur (terracotta) and Agam (sea blue), renamable in Settings; date only, no time. Deferred to M5 (only possible with two phones): what to do when a restored draft hits an edit conflict.
 - M3: what happens to "want to go back" after another visit; whether deleting all visits restores wishlist status.
 - M4: photo count/size limits per visit; compression level (matters for Supabase's 1 GB free storage later).
 - M5: how local-first data is merged if both phones created data before sync; sign-out cleanup.
