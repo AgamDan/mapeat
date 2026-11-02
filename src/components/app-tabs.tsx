@@ -1,30 +1,32 @@
-import { NativeTabs } from 'expo-router/unstable-native-tabs';
-import { useColorScheme } from 'react-native';
+import { NativeTabs } from 'expo-router/native-tabs';
 
-import { Colors } from '@/constants/theme';
+import { Fonts } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
+import { useT } from '@/i18n/i18n';
 
 export default function AppTabs() {
-  const scheme = useColorScheme();
-  const colors = Colors[scheme === 'unspecified' ? 'light' : scheme];
+  const theme = useTheme();
+  const t = useT();
 
   return (
     <NativeTabs
-      backgroundColor={colors.background}
-      indicatorColor={colors.backgroundElement}
-      labelStyle={{ selected: { color: colors.text } }}>
-      <NativeTabs.Trigger name="index">
-        <NativeTabs.Trigger.Label>Home</NativeTabs.Trigger.Label>
-        <NativeTabs.Trigger.Icon
-          src={require('@/assets/images/tabIcons/home.png')}
-          renderingMode="template"
-        />
+      backgroundColor={theme.backgroundRaised}
+      tintColor={theme.accent}
+      iconColor={{ default: theme.textSecondary, selected: theme.accent }}
+      labelStyle={{
+        default: { color: theme.textSecondary, fontFamily: Fonts.medium },
+        selected: { color: theme.accent, fontFamily: Fonts.bold },
+      }}>
+      <NativeTabs.Trigger name="index" contentStyle={{ backgroundColor: theme.background }}>
+        <NativeTabs.Trigger.Label>{t('tabs.map')}</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Icon sf={{ default: 'map', selected: 'map.fill' }} md="map" />
       </NativeTabs.Trigger>
 
-      <NativeTabs.Trigger name="explore">
-        <NativeTabs.Trigger.Label>Explore</NativeTabs.Trigger.Label>
+      <NativeTabs.Trigger name="timeline" contentStyle={{ backgroundColor: theme.background }}>
+        <NativeTabs.Trigger.Label>{t('tabs.timeline')}</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon
-          src={require('@/assets/images/tabIcons/explore.png')}
-          renderingMode="template"
+          sf={{ default: 'book.closed', selected: 'book.closed.fill' }}
+          md="menu_book"
         />
       </NativeTabs.Trigger>
     </NativeTabs>

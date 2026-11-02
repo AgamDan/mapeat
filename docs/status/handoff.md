@@ -4,6 +4,16 @@ Last updated: November 2, 2026
 
 Older entries below mention earlier paths (`mapeat-starter/`, `MAPEAT_CODEX_HANDOFF (1).md`, `docs/superpowers/specs/`). They are kept as written; see the November 2 restructure entry for the current locations.
 
+## Planning + Milestone 0 — November 2, 2026
+
+- Live OSM measurement for Tel Aviv succeeded (see `docs/research/2026-10-31-tel-aviv-coverage.md`): 1,316 venues; ~1% link any photo; public Overpass returned 502/timeout before succeeding.
+- Remaining product decisions resolved with the user and recorded in `docs/product/design-spec.md` ("Decisions confirmed November 2, 2026"): Apple Maps via `react-native-maps` in Expo Go; live Overpass catalog; five venue types; local-first storage with a "Writing as" switch; invite link + code later; ask language on first launch; whole 1–10 ratings (required), notes optional; per-person averages; either member edits/deletes; wishlist manual removal + "want to go back"; OSM filters + own tags; menu photos on the place; visit photos addable later; postcard visual direction with System/Light/Dark.
+- Visual direction mockups (4 styles, bilingual) in `.superpowers/brainstorm/mapeat-styles-20261102/index.html` (gitignored). User chose "Mediterranean postcard".
+- Added `docs/product/implementation-plan.md` (architecture, data model, milestones M0–M6).
+- Built M0: removed starter screens/assets and `reset-project`; postcard theme (light/dark + manual switch), Frank Ruhl Libre; i18n (`src/i18n/`) with runtime RTL via the Yoga `direction` style and Expo Router `LocaleProvider` (native RTL forcing doesn't work in Expo Go); first-launch language screen gated with `Stack.Protected`; native tabs Map/Timeline; settings modal; settings persisted in AsyncStorage. Added `expo-localization`, `@react-native-async-storage/async-storage`, `@expo-google-fonts/frank-ruhl-libre`, ESLint 9 (`eslint-config-expo`).
+- Verified: `npx tsc --noEmit` clean (starter errors gone), `npx expo lint` clean, iOS bundle exports, web flow works in both languages. **Not yet verified on the iPhone.**
+- Next: user runs `npx expo start --go` and checks M0 on the phone in Hebrew and English; then M1 (map + catalog).
+
 ## Restructure — November 2, 2026
 
 - User requested app code at the repository root and all documentation in one logical place. Chosen options: app at root, docs grouped by type, app renamed to `mapeat`, full scope.

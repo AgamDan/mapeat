@@ -1,0 +1,26 @@
+import type { Translations } from './en';
+
+export const he: Translations = {
+  appName: 'MapEat',
+  'welcome.tagline': 'המקומות שלנו, הביקורים שלנו, הגלויות שלנו.',
+  'welcome.choose': 'בחרו שפה',
+  'welcome.later': 'אפשר לשנות את זה בכל רגע בהגדרות.',
+  'tabs.map': 'מפה',
+  'tabs.timeline': 'ציר זמן',
+  'map.title': 'מפה',
+  'map.comingTitle': 'המפה בדרך',
+  'map.comingBody': 'השלב הבא: מסעדות, בתי קפה וברים אמיתיים מ־OpenStreetMap, ממש כאן.',
+  'timeline.title': 'ציר זמן',
+  'timeline.emptyTitle': 'עדיין אין ביקורים',
+  'timeline.emptyBody': 'כל מקום שתבקרו בו יחד יופיע כאן כגלויה, מהחדש לישן.',
+  'settings.title': 'הגדרות',
+  'settings.open': 'פתיחת ההגדרות',
+  'settings.language': 'שפה',
+  'settings.appearance': 'מראה',
+  'settings.appearance.system': 'כמו בטלפון',
+  'settings.appearance.light': 'בהיר',
+  'settings.appearance.dark': 'כהה',
+  'settings.done': 'סיום',
+  'language.he': 'עברית',
+  'language.en': 'English',
+};

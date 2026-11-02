@@ -1,55 +1,50 @@
 /**
- * Below are the colors that are used in the app. The colors are defined in the light and dark mode.
- * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://reactnativeunistyles.vercel.app), etc.
+ * "Mediterranean postcard" design tokens.
+ * Light: sand paper, terracotta, sea blue. Dark: the same postcard at night.
  */
-
-import '@/global.css';
-
-import { Platform } from 'react-native';
 
 export const Colors = {
   light: {
-    text: '#000000',
-    background: '#ffffff',
-    backgroundElement: '#F0F0F3',
-    backgroundSelected: '#E0E1E6',
-    textSecondary: '#60646C',
+    background: '#F3E6CF',
+    backgroundRaised: '#F7EEDD',
+    card: '#FFFAF0',
+    text: '#2B2118',
+    textSecondary: '#7D6A55',
+    line: '#D9C6A6',
+    chip: '#EAD8B8',
+    accent: '#C4572F',
+    onAccent: '#FFF8EE',
+    sea: '#1F5F8B',
+    personA: '#C4572F',
+    personB: '#1F5F8B',
   },
   dark: {
-    text: '#ffffff',
-    background: '#000000',
-    backgroundElement: '#212225',
-    backgroundSelected: '#2E3135',
-    textSecondary: '#B0B4BA',
+    background: '#171A21',
+    backgroundRaised: '#1F232C',
+    card: '#262B36',
+    text: '#F3E9D8',
+    textSecondary: '#A89A86',
+    line: '#3A3F4B',
+    chip: '#2C313C',
+    accent: '#E07A55',
+    onAccent: '#1B1410',
+    sea: '#6FA8D1',
+    personA: '#E07A55',
+    personB: '#6FA8D1',
   },
 } as const;
 
-export type ThemeColor = keyof typeof Colors.light & keyof typeof Colors.dark;
+export type ColorScheme = keyof typeof Colors;
+export type Palette = { [K in keyof typeof Colors.light]: string };
+export type ThemeColor = keyof Palette;
 
-export const Fonts = Platform.select({
-  ios: {
-    /** iOS `UIFontDescriptorSystemDesignDefault` */
-    sans: 'system-ui',
-    /** iOS `UIFontDescriptorSystemDesignSerif` */
-    serif: 'ui-serif',
-    /** iOS `UIFontDescriptorSystemDesignRounded` */
-    rounded: 'ui-rounded',
-    /** iOS `UIFontDescriptorSystemDesignMonospaced` */
-    mono: 'ui-monospace',
-  },
-  default: {
-    sans: 'normal',
-    serif: 'serif',
-    rounded: 'normal',
-    mono: 'monospace',
-  },
-  web: {
-    sans: 'var(--font-display)',
-    serif: 'var(--font-serif)',
-    rounded: 'var(--font-rounded)',
-    mono: 'var(--font-mono)',
-  },
-});
+/** Frank Ruhl Libre covers Hebrew and Latin. Each weight is its own family in React Native. */
+export const Fonts = {
+  regular: 'FrankRuhlLibre_400Regular',
+  medium: 'FrankRuhlLibre_500Medium',
+  bold: 'FrankRuhlLibre_700Bold',
+  black: 'FrankRuhlLibre_900Black',
+} as const;
 
 export const Spacing = {
   half: 2,
@@ -61,5 +56,11 @@ export const Spacing = {
   six: 64,
 } as const;
 
-export const BottomTabInset = Platform.select({ ios: 50, android: 80 }) ?? 0;
+export const Radius = {
+  small: 4,
+  card: 14,
+  sheet: 24,
+  pill: 999,
+} as const;
+
 export const MaxContentWidth = 800;

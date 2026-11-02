@@ -1,14 +1,16 @@
-/**
- * Learn more about light and dark modes:
- * https://docs.expo.dev/guides/color-schemes/
- */
+import { useColorScheme } from 'react-native';
 
-import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { Colors, type ColorScheme } from '@/constants/theme';
+import { useSettings } from '@/settings/settings-provider';
+
+/** Resolved light/dark scheme: the manual choice in settings, otherwise the phone's. */
+export function useResolvedScheme(): ColorScheme {
+  const { appearance } = useSettings();
+  const system = useColorScheme();
+  if (appearance !== 'system') return appearance;
+  return system === 'dark' ? 'dark' : 'light';
+}
 
 export function useTheme() {
-  const scheme = useColorScheme();
-  const theme = scheme === 'unspecified' ? 'light' : scheme;
-
-  return Colors[theme];
+  return Colors[useResolvedScheme()];
 }

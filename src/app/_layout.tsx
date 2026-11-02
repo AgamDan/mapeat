@@ -1,18 +1,106 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from 'expo-router';
+import {
+  FrankRuhlLibre_400Regular,
+  FrankRuhlLibre_500Medium,
+  FrankRuhlLibre_700Bold,
+  FrankRuhlLibre_900Black,
+  useFonts,
+} from '@expo-google-fonts/frank-ruhl-libre';
+import { DarkTheme, DefaultTheme, LocaleProvider, Stack, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
-import { useColorScheme } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
+import { useEffect, useMemo } from 'react';
+import { StyleSheet, View } from 'react-native';
 
-import { AnimatedSplashOverlay } from '@/components/animated-icon';
-import AppTabs from '@/components/app-tabs';
+import { Colors, Fonts } from '@/constants/theme';
+import { useResolvedScheme } from '@/hooks/use-theme';
+import { useLanguage, useT } from '@/i18n/i18n';
+import { SettingsProvider, useSettings } from '@/settings/settings-provider';
 
 SplashScreen.preventAutoHideAsync();
 
-export default function TabLayout() {
-  const colorScheme = useColorScheme();
+export default function RootLayout() {
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <AnimatedSplashOverlay />
-      <AppTabs />
+    <SettingsProvider>
+      <AppShell />
+    </SettingsProvider>
+  );
+}
+
+function AppShell() {
+  const { ready, language } = useSettings();
+  const [fontsLoaded, fontError] = useFonts({
+    FrankRuhlLibre_400Regular,
+    FrankRuhlLibre_500Medium,
+    FrankRuhlLibre_700Bold,
+    FrankRuhlLibre_900Black,
+  });
+  const scheme = useResolvedScheme();
+  const theme = Colors[scheme];
+  const { direction } = useLanguage();
+  const t = useT();
+  // A font error falls back to the system font rather than blocking the app.
+  const loaded = ready && (fontsLoaded || fontError != null);
+
+  useEffect(() => {
+    if (loaded) SplashScreen.hideAsync();
+  }, [loaded]);
+
+  const navigationTheme = useMemo(() => {
+    const base = scheme === 'dark' ? DarkTheme : DefaultTheme;
+    return {
+      ...base,
+      colors: {
+        ...base.colors,
+        primary: theme.accent,
+        background: theme.background,
+        card: theme.backgroundRaised,
+        text: theme.text,
+        border: theme.line,
+        notification: theme.accent,
+      },
+      fonts: {
+        regular: { fontFamily: Fonts.regular, fontWeight: 'normal' as const },
+        medium: { fontFamily: Fonts.medium, fontWeight: 'normal' as const },
+        bold: { fontFamily: Fonts.bold, fontWeight: 'normal' as const },
+        heavy: { fontFamily: Fonts.black, fontWeight: 'normal' as const },
+      },
+    };
+  }, [scheme, theme]);
+
+  if (!loaded) return null;
+
+  return (
+    <ThemeProvider value={navigationTheme}>
+      {/* Expo Go ignores native RTL overrides, so direction is applied to the React tree instead. */}
+      <LocaleProvider direction={direction}>
+        <View style={[styles.root, { direction, backgroundColor: theme.background }]}>
+          <Stack
+            screenOptions={{
+              headerTintColor: theme.accent,
+              headerStyle: { backgroundColor: theme.backgroundRaised },
+              headerTitleStyle: { fontFamily: Fonts.bold, color: theme.text },
+              contentStyle: { backgroundColor: theme.background, direction },
+            }}>
+            <Stack.Protected guard={language !== null}>
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+              <Stack.Screen
+                name="settings"
+                options={{ presentation: 'modal', title: t('settings.title') }}
+              />
+            </Stack.Protected>
+            <Stack.Protected guard={language === null}>
+              <Stack.Screen name="welcome" options={{ headerShown: false }} />
+            </Stack.Protected>
+          </Stack>
+          <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
+        </View>
+      </LocaleProvider>
     </ThemeProvider>
   );
 }
+
+const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+  },
+});

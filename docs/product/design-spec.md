@@ -34,6 +34,32 @@ Confirmed initial use/distribution workflow: use Expo Go on both iPhones, with t
 
 Planning-time checks found existing SDK 58 starter type errors in `src/components/app-tabs.tsx`, `src/components/app-tabs.web.tsx`, and `src/hooks/use-theme.ts`: color-scheme nullability/obsolete `unspecified` comparisons and a web tab ref type. ESLint is not installed. Resolve these as foundation work before declaring the SDK upgrade fully validated; Expo connection alone is not a passing typecheck. No app source was changed during planning.
 
+## Decisions confirmed November 2, 2026
+
+These answers resolve or narrow the open decisions listed later in this document. Where they differ from an earlier recommendation in this spec, these win.
+
+| Topic | Decision |
+| --- | --- |
+| Map | Apple Maps through `react-native-maps` inside Expo Go ($0, no API key). Wrap it in one app-owned map component so a different renderer (e.g. MapLibre for a future Android build) can replace it without touching screens. `expo-maps` and MapLibre need a custom build and are out of scope. Apple Maps' own place labels are not tappable for data in `react-native-maps` (POI click is Google-only). |
+| Catalog source | OpenStreetMap via live Overpass queries for the visible map area, cached on the phone. Must tolerate Overpass failures (observed 502/timeout): cached results stay usable, retries are spaced and sequential, errors are clear. Attribution "© OpenStreetMap contributors" visible. |
+| Venue types | `restaurant`, `cafe`, `fast_food`, `bar` (and pubs), `ice_cream`. |
+| Profile photos | OSM-linked Commons/licensed photos where they exist (about 1% in Tel Aviv), otherwise the "No photo yet" placeholder. The couple may explicitly choose one of their own visit photos as a private journal cover for a place; it is never shown as a public profile photo. |
+| Backend timing | Local-first: build the flow with on-device storage first, then connect Supabase. Keep all persistence behind one data-access layer so the switch does not change screens. Until then: no cross-phone sharing and no Apple sign-in. |
+| Partner join (with backend) | Share-sheet invite link plus a 6-digit backup code; single use, expires in 24 hours. In Expo Go a link only works while the dev server runs at the same address. |
+| First-launch language | Ask on first launch (עברית / English); changeable later in settings. |
+| Rating | Whole numbers 1–10. Rating required; notes optional. |
+| Place score summary | Each person's own average, side by side in their own color. Never a combined number. |
+| Deleting | Either member can delete any visit, review, or photo after a confirmation. |
+| Visit date/place editing | Either member. |
+| Wishlist | Either member can remove manually. Visited places can carry a separate "want to go back" mark. |
+| Categories | Filter by venue type and OSM `cuisine`, plus the couple's own tags (e.g. "date night"). |
+| App name | Keep "MapEat" for now. |
+| Visual direction | Mediterranean postcard: sand paper, terracotta + sea blue, Frank Ruhl Libre; each visit shown as a stamped postcard with the two reviews as its two halves. Mockups of all four candidate directions: `.superpowers/brainstorm/mapeat-styles-20261102/` (gitignored). |
+| Light/dark | Follow the phone by default, with a manual System / Light / Dark switch in settings. |
+| Reviewers before the backend | One phone with a "Writing as" switch between the two people, each in their own color. Real accounts replace the switch when the backend arrives; existing local reviews must keep their author. |
+| Menu photos | Private (couple-only) photos of a restaurant's menu belong to the place, not a visit: one "Menu" section on the place profile, newest first with the date taken. Can be added before any visit (e.g. for a wishlist place) and anytime later. Never shown as public profile photos. |
+| Adding visit photos later | Food/outing photos can be added to an already-saved visit anytime, by either member. |
+
 ## Success
 
 First useful milestone: find/select a real restaurant already supplied by the map/place provider, save a dated visit with a rating and notes, close the app, reopen it, and find that visit. Add a second visit to the same place and see both. A manual-only version does not satisfy the user's requirement.

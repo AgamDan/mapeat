@@ -2,8 +2,17 @@
   "name": "mapeat",
   "main": "expo-router/entry",
   "version": "1.0.0",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web",
+    "lint": "expo lint"
+  },
   "dependencies": {
+    "@expo-google-fonts/frank-ruhl-libre": "^0.4.1",
     "@expo/ui": "~58.0.26",
+    "@react-native-async-storage/async-storage": "2.2.0",
     "expo": "^58.0.22",
     "expo-constants": "~58.0.14",
     "expo-device": "~58.0.5",
@@ -11,6 +20,7 @@
     "expo-glass-effect": "~58.0.5",
     "expo-image": "~58.0.18",
     "expo-linking": "~58.0.15",
+    "expo-localization": "~58.0.5",
     "expo-router": "~58.0.29",
     "expo-splash-screen": "^58.0.12",
     "expo-status-bar": "~58.0.4",
@@ -29,15 +39,9 @@
   },
   "devDependencies": {
     "@types/react": "~19.3.0",
+    "eslint": "^9.0.0",
+    "eslint-config-expo": "~58.0.4",
     "typescript": "~6.0.3"
-  },
-  "scripts": {
-    "start": "expo start",
-    "reset-project": "node ./scripts/reset-project.js",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
-    "web": "expo start --web",
-    "lint": "expo lint"
   },
   "private": true
 }

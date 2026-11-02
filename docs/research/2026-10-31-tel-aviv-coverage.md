@@ -34,7 +34,7 @@ out count;
 
 The rectangle is a research sample area, not a verified municipal boundary. It includes only the `restaurant` tag, not all cafés, fast-food businesses, bars, bakeries, or permanently closed venues. Counts from it must not be described as the total number of Tel Aviv dining venues.
 
-Results: the main and alternative public Overpass URLs could not be fetched through the browsing tool. A direct terminal request also failed with `Unable to connect to the remote server`. A small direct OSM map request was inaccessible as well. Therefore:
+Results (October 31 session): the main and alternative public Overpass URLs could not be fetched through the browsing tool. A direct terminal request also failed with `Unable to connect to the remote server`. A small direct OSM map request was inaccessible as well. Superseded by the November 2 live measurement below. As of October 31:
 
 - Live restaurant count: **not verified**.
 - Number of restaurants with matched reusable photos: **not verified**.
@@ -42,6 +42,41 @@ Results: the main and alternative public Overpass URLs could not be fetched thro
 - A complete, current Tel Aviv catalog with photos for every restaurant: **not demonstrated**.
 
 Third-party search results mentioned OSM-derived restaurant counts, but those were not used as first-party dataset measurements or imported as licensed records.
+
+## Live measurement — November 2, 2026
+
+One bounded Overpass request succeeded (overpass-api.de, after one 502 and one timeout on an alternate instance; requests were sequential, identified with a MapEat User-Agent). OSM data timestamp `2026-11-02T21:32:37Z`. Same research rectangle `(32.02,34.74,32.15,34.85)`, widened to `amenity` = `restaurant|cafe|fast_food`:
+
+```overpass
+[out:json][timeout:25];
+nwr["amenity"~"^(restaurant|cafe|fast_food)$"](32.02,34.74,32.15,34.85);
+out tags center;
+```
+
+| Measure | Count | Share of 1,316 |
+| --- | --- | --- |
+| Venues: restaurant / cafe / fast_food | 521 / 421 / 374 | — |
+| Has `name` | 1,130 | 85.9% |
+| Has `name:he` | 708 | 53.8% |
+| Has `name:en` | 912 | 69.3% |
+| Hebrew and English name available (tag or script of `name`) | 644 | 48.9% |
+| `cuisine` tag | 613 | 46.6% |
+| `addr:street` | 553 | 42.0% |
+| `website` / `contact:website` | 285 | 21.7% |
+| `opening_hours` | 278 | 21.1% |
+| `wikidata` or `brand:wikidata` (mostly chain brands) | 139 | 10.6% |
+| `wikimedia_commons` tag | 2 | 0.2% |
+| `image` tag | 2 | 0.2% (one is a Google Photos link, not a licensed image) |
+| Any photo reference (`wikidata`, `wikimedia_commons`, or `image`) | 14 | 1.1% |
+
+Of the 521 `restaurant` features, only 2 carry a Commons/image tag and 6 have their own `wikidata`.
+
+Conclusions:
+
+- OSM is viable for a selectable Tel Aviv catalog (names, coordinates, roughly half with cuisine), but bilingual names are incomplete: show whichever name exists rather than hiding venues.
+- OSM-linked photos cover about 1% of venues. With OSM tags alone, almost every profile will show the approved "No photo yet" placeholder. Any richer profile-photo experience needs an additional licensed source or explicit per-venue matching.
+- Public Overpass availability is unreliable from a client (502 and timeout before success). Prefer a periodically refreshed copy over live per-viewport queries from the phone.
+- The raw response was used only for these counts and was not committed or imported. Storing OSM data in the app requires ODbL attribution ("© OpenStreetMap contributors").
 
 ## Proposed next steps
 
