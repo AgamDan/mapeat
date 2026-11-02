@@ -1,17 +1,20 @@
 import { Image } from 'expo-image';
-import { useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import * as WebBrowser from 'expo-web-browser';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Linking, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
-import { Postcard } from '@/components/postcard';
 import { ThemedText } from '@/components/themed-text';
 import { MaxContentWidth, Radius, Spacing } from '@/constants/theme';
 import { getPlace } from '@/data/places';
 import { commonsFileName, fetchCommonsPhoto, type CommonsPhoto } from '@/features/catalog/commons';
 import { addressLine, cuisineLabels, KIND_LABEL_KEYS, venueNames } from '@/features/catalog/labels';
 import type { Venue } from '@/features/catalog/types';
+import { usePeople } from '@/features/people/use-people';
+import { PlaceSummary } from '@/features/visits/place-summary';
+import { usePlaceJournal } from '@/features/visits/use-place-journal';
+import { VisitCard } from '@/features/visits/visit-card';
 import { useTheme } from '@/hooks/use-theme';
 import { useLanguage, useT } from '@/i18n/i18n';
 
@@ -28,6 +31,8 @@ export default function PlaceScreen() {
   // `undefined` while loading, `null` when the place is not in the cache.
   const [venue, setVenue] = useState<Venue | null | undefined>(undefined);
   const [photo, setPhoto] = useState<CommonsPhoto | null>(null);
+  const { journal, error: journalError, retry: retryJournal } = usePlaceJournal(id);
+  const { people, ready: peopleReady } = usePeople();
 
   useEffect(() => {
     let cancelled = false;
@@ -105,6 +110,15 @@ export default function PlaceScreen() {
         </ThemedText>
       </View>
 
+      <Pressable
+        accessibilityRole="button"
+        onPress={() => router.push({ pathname: '/visit/new', params: { placeId: venue.id } })}
+        style={({ pressed }) => [styles.primaryButton, { backgroundColor: theme.accent }, pressed && styles.pressed]}>
+        <ThemedText type="defaultBold" themeColor="onAccent">
+          {t('visit.add')}
+        </ThemedText>
+      </Pressable>
+
       {address ? <Detail label={t('place.address')} value={address} /> : null}
       {venue.openingHours ? <Detail label={t('place.hours')} value={venue.openingHours} /> : null}
       {venue.website ? (
@@ -120,10 +134,32 @@ export default function PlaceScreen() {
         <ThemedText type="defaultBold">{t('place.openInMaps')}</ThemedText>
       </Pressable>
 
-      <Postcard>
-        <ThemedText type="subtitle">{t('place.comingTitle')}</ThemedText>
-        <ThemedText themeColor="textSecondary">{t('place.comingBody')}</ThemedText>
-      </Postcard>
+      <View style={styles.section}>
+        <ThemedText type="subtitle" accessibilityRole="header">
+          {t('place.ourVisits')}
+        </ThemedText>
+        {journal && peopleReady ? (
+          journal.visits.length > 0 ? (
+            <>
+              <PlaceSummary people={people} averages={journal.averages} visitCount={journal.visits.length} />
+              {journal.visits.map((visit) => (
+                <VisitCard key={visit.id} visit={visit} people={people} />
+              ))}
+            </>
+          ) : (
+            <ThemedText themeColor="textSecondary">{t('place.noVisitsYet')}</ThemedText>
+          )
+        ) : journalError ? (
+          <Pressable
+            accessibilityRole="button"
+            onPress={retryJournal}
+            style={({ pressed }) => [styles.button, { borderColor: theme.line }, pressed && styles.pressed]}>
+            <ThemedText type="defaultBold">{t('map.retry')}</ThemedText>
+          </Pressable>
+        ) : (
+          <ActivityIndicator color={theme.accent} />
+        )}
+      </View>
 
       <Pressable accessibilityRole="link" onPress={() => WebBrowser.openBrowserAsync(osmUrl)}>
         <ThemedText type="small" themeColor="textSecondary">
@@ -188,6 +224,17 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.two,
     borderRadius: Radius.small,
     borderWidth: 1,
+  },
+  primaryButton: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 48,
+    paddingVertical: Spacing.two,
+    borderRadius: Radius.small,
+  },
+  section: {
+    gap: Spacing.three,
+    marginTop: Spacing.two,
   },
   pressed: {
     opacity: 0.7,
