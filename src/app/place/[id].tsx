@@ -14,7 +14,8 @@ import type { Venue } from '@/features/catalog/types';
 import { usePeople } from '@/features/people/use-people';
 import { MenuPhotosSection } from '@/features/photos/menu-photos-section';
 import { usePhotosForVisits } from '@/features/photos/use-photos-for-visits';
-import { useCoverPhoto } from '@/features/photos/use-place-photos';
+import { useCoverPhoto, useHeaderPhoto } from '@/features/photos/use-place-photos';
+import { photoUri } from '@/features/photos/photo-files';
 import { PlaceTagsRow } from '@/features/tags/place-tags-row';
 import { PlaceSummary } from '@/features/visits/place-summary';
 import { usePlaceJournal } from '@/features/visits/use-place-journal';
@@ -49,6 +50,7 @@ export default function PlaceScreen() {
   const { journal, error: journalError, retry: retryJournal } = usePlaceJournal(id);
   const { people, ready: peopleReady } = usePeople();
   const cover = useCoverPhoto(id);
+  const headerPhoto = useHeaderPhoto(id);
   const photosFor = usePhotosForVisits(journal?.visits.map((visit) => visit.id) ?? []);
 
   useEffect(() => {
@@ -95,6 +97,9 @@ export default function PlaceScreen() {
   const details = [t(KIND_LABEL_KEYS[venue.kind]), ...cuisineLabels(venue.cuisine, language)].join(' · ');
   const address = addressLine(venue);
   const mapsUrl = `https://maps.apple.com/?q=${encodeURIComponent(primary ?? t(KIND_LABEL_KEYS[venue.kind]))}&ll=${venue.lat},${venue.lon}`;
+  // Google Maps URLs (no key, no billing): searching name + address finds the listing with its photos.
+  const googleQuery = [venue.name ?? primary, address ?? `${venue.lat},${venue.lon}`].filter(Boolean).join(', ');
+  const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(googleQuery)}`;
   const osmUrl = `https://www.openstreetmap.org/${venue.osmType}/${venue.osmId}`;
 
   return (
@@ -113,6 +118,24 @@ export default function PlaceScreen() {
             </ThemedText>
           </Pressable>
         </View>
+      ) : headerPhoto ? (
+        // No public photo: show the couple's own photo, clearly marked as theirs (private).
+        <Pressable
+          accessibilityRole="imagebutton"
+          accessibilityLabel={t('photos.ourPhoto')}
+          onPress={() => router.push({ pathname: '/photo/[id]', params: { id: headerPhoto.id } })}
+          style={styles.photoBlock}>
+          <Image
+            source={{ uri: photoUri(headerPhoto.fileName) }}
+            style={[styles.photo, { backgroundColor: theme.chip }]}
+            contentFit="cover"
+          />
+          <View style={[styles.ourPhotoBadge, { backgroundColor: theme.card }]}>
+            <ThemedText type="smallBold" themeColor="accent">
+              {t('photos.ourPhoto')}
+            </ThemedText>
+          </View>
+        </Pressable>
       ) : (
         <View style={[styles.placeholder, { borderColor: theme.line, backgroundColor: theme.backgroundRaised }]}>
           <ThemedText themeColor="textSecondary">{t('place.noPhoto')}</ThemedText>
@@ -153,6 +176,12 @@ export default function PlaceScreen() {
         onPress={() => openExternal(mapsUrl)}
         style={({ pressed }) => [styles.button, { borderColor: theme.line }, pressed && styles.pressed]}>
         <ThemedText type="defaultBold">{t('place.openInMaps')}</ThemedText>
+      </Pressable>
+      <Pressable
+        accessibilityRole="link"
+        onPress={() => openExternal(googleMapsUrl)}
+        style={({ pressed }) => [styles.button, { borderColor: theme.line }, pressed && styles.pressed]}>
+        <ThemedText type="defaultBold">{t('place.seeOnGoogle')}</ThemedText>
       </Pressable>
 
       <View style={styles.section}>
@@ -218,6 +247,14 @@ function Detail({ label, value, link = false }: { label: string; value: string; 
 }
 
 const styles = StyleSheet.create({
+  ourPhotoBadge: {
+    position: 'absolute',
+    top: Spacing.two,
+    start: Spacing.two,
+    paddingHorizontal: Spacing.two,
+    paddingVertical: Spacing.half,
+    borderRadius: Radius.pill,
+  },
   ltrText: {
     writingDirection: 'ltr',
   },

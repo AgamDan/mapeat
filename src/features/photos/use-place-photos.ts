@@ -2,7 +2,7 @@ import { useSQLiteContext } from 'expo-sqlite';
 import { useCallback, useEffect, useState } from 'react';
 
 import { useJournalRevision } from '@/data/journal-events';
-import { getCoverPhoto, getMenuPhotos, type Photo } from '@/data/photos';
+import { getCoverPhoto, getHeaderPhoto, getMenuPhotos, type Photo } from '@/data/photos';
 
 type MenuState = { placeId: string; photos: Photo[] | null; error: boolean };
 
@@ -62,4 +62,30 @@ export function useCoverPhoto(placeId: string | undefined) {
   }, [db, placeId, revision]);
 
   return state && state.placeId === placeId ? state.cover : null;
+}
+
+/**
+ * The couple's own photo for the top of a place page when it has no public photo (cover, else
+ * newest visit photo, else newest menu photo); `null` if none or not loaded yet.
+ */
+export function useHeaderPhoto(placeId: string | undefined) {
+  const db = useSQLiteContext();
+  const revision = useJournalRevision();
+  const [state, setState] = useState<{ placeId: string; photo: Photo | null } | null>(null);
+
+  useEffect(() => {
+    if (!placeId) return;
+    let cancelled = false;
+    getHeaderPhoto(db, placeId).then(
+      (photo) => {
+        if (!cancelled) setState({ placeId, photo });
+      },
+      () => {},
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, [db, placeId, revision]);
+
+  return state && state.placeId === placeId ? state.photo : null;
 }

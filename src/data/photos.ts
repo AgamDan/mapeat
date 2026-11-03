@@ -242,3 +242,19 @@ export async function getAllPhotoFileNames(db: SQLiteDatabase) {
   const rows = await db.getAllAsync<{ file_name: string }>('SELECT file_name FROM photos');
   return new Set(rows.map((row) => row.file_name));
 }
+
+/**
+ * The couple's photo to show at the top of a place page when it has no public photo: the chosen
+ * cover, otherwise the newest visit photo, otherwise the newest menu photo.
+ */
+export async function getHeaderPhoto(db: SQLiteDatabase, placeId: string) {
+  const cover = await getCoverPhoto(db, placeId);
+  if (cover) return cover;
+  const row = await db.getFirstAsync<PhotoRow>(
+    `SELECT * FROM photos WHERE place_id = ?
+     ORDER BY kind = 'visit' DESC, COALESCE(taken_at, created_at) DESC, created_at DESC, id
+     LIMIT 1`,
+    [placeId],
+  );
+  return row ? toPhoto(row) : null;
+}

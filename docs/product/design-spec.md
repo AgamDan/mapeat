@@ -69,6 +69,7 @@ These answers resolve or narrow the open decisions listed later in this document
 | Menu photos over time (M4) | Keep every menu photo, newest first with its date (prices can be compared over time). |
 | Backend timing (updated Nov 3) | Supabase and two-phone sharing (M5) are postponed; the user will set up Supabase later. Data recorded before Supabase does not need to be migrated (start fresh in the cloud). |
 | M6 polish scope | Place search from the Map tab; RTL/LTR audit; weak-network/error-state audit; friendlier empty states + a first-use map hint; postcard app icon and splash; small Timeline stats (visits this year, top-rated places, where you disagree most); share a visit postcard as an image. |
+| Restaurant photos (Nov 4) | Google photos can't be shown in-app (Places API needs billing; scraping is forbidden). Instead: a "See photos on Google Maps" button opens the place in Google Maps (free URL scheme). When a place has no licensed public photo, the top of the place page shows the couple's own photo (cover, else newest visit photo, else newest menu photo) labeled "Our photo" — this replaces the earlier rule that private photos never appear in that slot. |
 
 ## Success
 
