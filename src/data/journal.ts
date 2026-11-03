@@ -375,3 +375,56 @@ export async function getAllJournalMapPlaces(
   const world: Bounds = { south: -90, north: 90, west: -180, east: 180 };
   return getMapPlaces(db, world, { ...filter, show: filter.show === 'all' ? 'journal' : filter.show }, limit, near);
 }
+
+/* ---------------------------------------------------------------------------------- search */
+
+/** Characters that LIKE treats specially, escaped with `\`. */
+function likePattern(text: string) {
+  return `%${text.replace(/[\\%_]/g, (char) => `\\${char}`)}%`;
+}
+
+/**
+ * Places whose Hebrew, English, or local name contains `query` (case-insensitive for Latin
+ * letters). Journal places come first, then names that start with the query, then the ones
+ * nearest to `near` (if given). Searches every cached place, not only the visible map.
+ */
+export async function searchPlaces(
+  db: SQLiteDatabase,
+  query: string,
+  limit: number,
+  near?: { lat: number; lon: number },
+): Promise<MapPlace[]> {
+  const text = query.trim().replace(/\s+/g, ' ').toLowerCase();
+  if (!text) return [];
+  const pattern = likePattern(text);
+  const prefix = `${text.replace(/[\\%_]/g, (char) => `\\${char}`)}%`;
+  const visited = 'EXISTS (SELECT 1 FROM visits v WHERE v.place_id = p.id)';
+  const lat = near?.lat ?? 0;
+  const lon = near?.lon ?? 0;
+  const rows = await db.getAllAsync<PlaceRow & { is_visited: number; wishlist: number | null; want_return: number | null }>(
+    `SELECT p.*, ${visited} AS is_visited, jp.wishlist, jp.want_return
+     FROM places p LEFT JOIN journal_places jp ON jp.place_id = p.id
+     WHERE LOWER(COALESCE(p.name, '')) LIKE ? ESCAPE '\\'
+        OR LOWER(COALESCE(p.name_he, '')) LIKE ? ESCAPE '\\'
+        OR LOWER(COALESCE(p.name_en, '')) LIKE ? ESCAPE '\\'
+     ORDER BY
+       (jp.place_id IS NOT NULL) DESC,
+       (LOWER(COALESCE(p.name, '')) LIKE ? ESCAPE '\\'
+         OR LOWER(COALESCE(p.name_he, '')) LIKE ? ESCAPE '\\'
+         OR LOWER(COALESCE(p.name_en, '')) LIKE ? ESCAPE '\\') DESC,
+       ${near ? '(p.lat - ?) * (p.lat - ?) + (p.lon - ?) * (p.lon - ?)' : 'p.id'}
+     LIMIT ?`,
+    [pattern, pattern, pattern, prefix, prefix, prefix, ...(near ? [lat, lat, lon, lon] : []), limit],
+  );
+  const places: MapPlace[] = [];
+  for (const row of rows) {
+    const venue = toVenue(row);
+    if (!venue) continue;
+    places.push({
+      ...venue,
+      status: row.is_visited ? 'visited' : row.wishlist === 1 ? 'wishlist' : 'none',
+      wantReturn: row.want_return === 1,
+    });
+  }
+  return places;
+}

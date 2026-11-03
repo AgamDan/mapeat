@@ -67,6 +67,8 @@ These answers resolve or narrow the open decisions listed later in this document
 | Visit photos (M4) | Belong to the visit (either person adds; each photo remembers who added it). Up to 10 per visit. Camera and photo library. |
 | Photo size (M4) | Resized to 1600 px on the long side, JPEG ~300 KB, so ~3,000 photos fit Supabase's free 1 GB later. |
 | Menu photos over time (M4) | Keep every menu photo, newest first with its date (prices can be compared over time). |
+| Backend timing (updated Nov 3) | Supabase and two-phone sharing (M5) are postponed; the user will set up Supabase later. Data recorded before Supabase does not need to be migrated (start fresh in the cloud). |
+| M6 polish scope | Place search from the Map tab; RTL/LTR audit; weak-network/error-state audit; friendlier empty states + a first-use map hint; postcard app icon and splash; small Timeline stats (visits this year, top-rated places, where you disagree most); share a visit postcard as an image. |
 
 ## Success
 
