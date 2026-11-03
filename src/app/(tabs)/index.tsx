@@ -1,17 +1,22 @@
 import * as Location from 'expo-location';
 import { router } from 'expo-router';
 import { SymbolView } from 'expo-symbols';
-import { useCallback, useRef, useState } from 'react';
+import { useSQLiteContext } from 'expo-sqlite';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ScreenHeader } from '@/components/screen-header';
 import { ThemedText } from '@/components/themed-text';
 import { Radius, Spacing } from '@/constants/theme';
+import { listTags, type MapPlace } from '@/data/journal';
+import { useJournalRevision } from '@/data/journal-events';
 import { KIND_LABEL_KEYS, venueNames } from '@/features/catalog/labels';
-import type { Venue } from '@/features/catalog/types';
 import { useCatalog } from '@/features/catalog/use-catalog';
+import { FilterButton } from '@/features/map/filter-button';
 import { JournalMap, type JournalMapHandle } from '@/features/map/journal-map';
+import { activeFilterCount, getMapFilter, setMapFilter, useMapFilter } from '@/features/map/map-filter-store';
+import { setVisibleCuisines } from '@/features/map/visible-cuisines-store';
 import { useResolvedScheme, useTheme } from '@/hooks/use-theme';
 import { useLanguage, useT } from '@/i18n/i18n';
 
@@ -24,18 +29,55 @@ export default function MapScreen() {
   const theme = useTheme();
   const scheme = useResolvedScheme();
   const { language } = useLanguage();
-  const { venues, status, onRegionChange, retry } = useCatalog();
+  const filter = useMapFilter();
+  const journalRevision = useJournalRevision();
+  const { places, cuisines, hiddenByFilters, status, onRegionChange, retry } = useCatalog(
+    filter,
+    journalRevision,
+  );
+  const filterCount = activeFilterCount(filter);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showsUserLocation, setShowsUserLocation] = useState(false);
   const [locationDenied, setLocationDenied] = useState(false);
   const mapRef = useRef<JournalMapHandle>(null);
 
-  const venueLabel = useCallback(
-    (venue: Venue) => venueNames(venue, language).primary ?? t(KIND_LABEL_KEYS[venue.kind]),
+  useEffect(() => {
+    setVisibleCuisines(cuisines);
+  }, [cuisines]);
+
+  // A deleted tag must not keep filtering the map.
+  const db = useSQLiteContext();
+  const tagFilterActive = filter.tagIds.length > 0;
+  useEffect(() => {
+    if (!tagFilterActive) return;
+    let active = true;
+    listTags(db)
+      .then((tags) => {
+        const current = getMapFilter();
+        const known = new Set(tags.map((tag) => tag.id));
+        const kept = current.tagIds.filter((id) => known.has(id));
+        if (active && kept.length !== current.tagIds.length) setMapFilter({ ...current, tagIds: kept });
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, [db, tagFilterActive, journalRevision]);
+
+  const placeLabel = useCallback(
+    (place: MapPlace) => {
+      const name = venueNames(place, language).primary ?? t(KIND_LABEL_KEYS[place.kind]);
+      if (place.status === 'visited') {
+        const visited = `${name}, ${t('filters.showVisited')}`;
+        return place.wantReturn ? `${visited}, ${t('wishlist.wantToGoBack')}` : visited;
+      }
+      if (place.status === 'wishlist') return `${name}, ${t('wishlist.on')}`;
+      return name;
+    },
     [language, t],
   );
 
-  const openVenue = useCallback((id: string) => {
+  const openPlace = useCallback((id: string) => {
     setSelectedId(id);
     router.push({ pathname: '/place/[id]', params: { id } });
   }, []);
@@ -61,30 +103,34 @@ export default function MapScreen() {
   }, []);
 
   // Background refreshes stay quiet while places are on screen; only an empty map explains itself.
-  const nothingShown = venues.length === 0;
-  const showError = status === 'error' && nothingShown;
+  const nothingShown = places.length === 0;
+  const showError = status === 'error' && nothingShown && !hiddenByFilters;
   const showLoading = status === 'loading' && nothingShown;
+  // Zoomed out, our own places are drawn anyway; only "All places" still needs zooming in.
+  const showZoomIn = status === 'zoomIn' && filter.show === 'all';
   const note = locationDenied
     ? t('map.locationDenied')
     : showLoading
       ? t('map.loading')
-      : status === 'zoomIn'
+      : showZoomIn
         ? t('map.zoomIn')
         : showError
           ? t('map.error')
-          : null;
+          : hiddenByFilters
+            ? t('filters.noResults')
+            : null;
 
   return (
     <View style={styles.screen}>
       <JournalMap
         ref={mapRef}
         initialRegion={INITIAL_REGION}
-        venues={venues}
+        places={places}
         selectedId={selectedId}
         scheme={scheme}
         showsUserLocation={showsUserLocation}
-        venueLabel={venueLabel}
-        onSelectVenue={openVenue}
+        placeLabel={placeLabel}
+        onSelectPlace={openPlace}
         onRegionChangeComplete={onRegionChange}
       />
 
@@ -110,6 +156,7 @@ export default function MapScreen() {
       </View>
 
       <SafeAreaView edges={['bottom']} pointerEvents="box-none" style={styles.bottom}>
+        <FilterButton activeCount={filterCount} onPress={() => router.push('/map-filters')} />
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={t('map.locate')}
@@ -167,11 +214,12 @@ const styles = StyleSheet.create({
     bottom: 0,
     start: 0,
     end: 0,
-    // Apple Maps always draws its logo bottom-left, so keep the locate button bottom-right in both languages.
+    // Apple Maps always draws its logo bottom-left, so keep the map buttons bottom-right in both languages.
     direction: 'ltr',
-    flexDirection: 'row',
+    flexDirection: 'column',
     alignItems: 'flex-end',
     justifyContent: 'flex-end',
+    gap: Spacing.two,
     paddingHorizontal: Spacing.three,
     paddingBottom: Spacing.two,
   },

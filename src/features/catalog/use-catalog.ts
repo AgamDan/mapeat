@@ -1,10 +1,18 @@
 import { useSQLiteContext } from 'expo-sqlite';
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
+import {
+  DEFAULT_MAP_FILTER,
+  getAllJournalMapPlaces,
+  getMapPlaces,
+  type MapFilter,
+  type MapPlace,
+} from '@/data/journal';
 import { getPlacesInBounds, getStaleTiles, replacePlacesInArea } from '@/data/places';
 import { fetchVenues } from '@/features/catalog/overpass';
 import { boundsOfRegion, boundsOfTiles, tileKeysForBounds, type Region } from '@/features/catalog/tiles';
-import type { Venue } from '@/features/catalog/types';
+import type { Bounds } from '@/features/catalog/types';
+import { activeFilterCount } from '@/features/map/map-filter-store';
 
 /** Above this map height (degrees, ~5 km) we ask the user to zoom in instead of loading. */
 export const MAX_LATITUDE_DELTA = 0.045;
@@ -16,29 +24,85 @@ const FAILURE_COOLDOWN_MS = 30_000;
 
 export type CatalogStatus = 'idle' | 'loading' | 'zoomIn' | 'error';
 
+type Shown = {
+  places: MapPlace[];
+  /** OSM cuisine values (lowercase) among the places in view, ignoring the cuisine filter. */
+  cuisines: string[];
+  /** The filters hide places that would otherwise be drawn here. */
+  hiddenByFilters: boolean;
+};
+
+const EMPTY: Shown = { places: [], cuisines: [], hiddenByFilters: false };
+
+export function isZoomedOut(region: Region) {
+  return region.latitudeDelta > MAX_LATITUDE_DELTA;
+}
+
+function cuisinesOf(places: readonly MapPlace[]) {
+  const found = new Set<string>();
+  for (const place of places) {
+    for (const part of (place.cuisine ?? '').split(';')) {
+      const value = part.trim().toLowerCase();
+      if (value) found.add(value);
+    }
+  }
+  return [...found].sort();
+}
+
 /**
  * Keeps the visible map area's venues in sync: shows cached places immediately, then fetches
- * missing or month-old tiles from Overpass one request at a time.
+ * missing or month-old tiles from Overpass one request at a time. `filter` and journal changes
+ * only change what's drawn; loading always follows the visible area.
  */
-export function useCatalog() {
+export function useCatalog(filter: MapFilter, journalRevision: number) {
   const db = useSQLiteContext();
-  const [venues, setVenues] = useState<Venue[]>([]);
+  const [shown, setShown] = useState<Shown>(EMPTY);
   const [status, setStatus] = useState<CatalogStatus>('idle');
   const latestRegion = useRef<Region | null>(null);
+  const filterRef = useRef(filter);
   const running = useRef(false);
   // Set while a sync is running if another one was requested; `true` means a forced retry.
   const pending = useRef<boolean | null>(null);
   const lastFailureAt = useRef(0);
   const showSeq = useRef(0);
 
+  /** In view: journal places first (so catalog dots never crowd them out), then the rest. */
+  const placesInView = useCallback(
+    async (bounds: Bounds, current: MapFilter) => {
+      const matching = await getMapPlaces(db, bounds, current, MAX_MARKERS);
+      if (current.show !== 'all') return matching;
+      const journal = await getMapPlaces(db, bounds, { ...current, show: 'journal' }, MAX_MARKERS);
+      const ids = new Set(journal.map((place) => place.id));
+      return [...journal, ...matching.filter((place) => !ids.has(place.id))].slice(0, MAX_MARKERS);
+    },
+    [db],
+  );
+
   const showCached = useCallback(
     async (region: Region) => {
       const seq = ++showSeq.current;
-      const found = await getPlacesInBounds(db, boundsOfRegion(region), MAX_MARKERS);
+      const current = filterRef.current;
+      const bounds = boundsOfRegion(region);
+      const zoomedOut = isZoomedOut(region);
+      // Zoomed out, only our own places are drawn (anywhere); catalog dots need zooming in.
+      const load = (next: MapFilter) =>
+        zoomedOut ? getAllJournalMapPlaces(db, next, MAX_MARKERS) : placesInView(bounds, next);
+
+      const places = await load(current);
+      const withoutCuisine = current.cuisine ? await load({ ...current, cuisine: null }) : places;
+      let hiddenByFilters = false;
+      if (places.length === 0 && activeFilterCount(current) > 0) {
+        const unfiltered = zoomedOut
+          ? await getAllJournalMapPlaces(db, DEFAULT_MAP_FILTER, 1)
+          : await getPlacesInBounds(db, bounds, 1);
+        hiddenByFilters = unfiltered.length > 0;
+      }
       // Ignore results that arrive after a newer query was started.
-      if (seq === showSeq.current) setVenues(found);
+      if (seq === showSeq.current) {
+        setShown({ places, cuisines: cuisinesOf(withoutCuisine), hiddenByFilters });
+      }
     },
-    [db],
+    [db, placesInView],
   );
 
   /** One pass for the latest region: show the cache, then fetch stale tiles if allowed. */
@@ -46,11 +110,11 @@ export function useCatalog() {
     async (force: boolean) => {
       const region = latestRegion.current;
       if (!region) return;
-      if (region.latitudeDelta > MAX_LATITUDE_DELTA) {
+      await showCached(region);
+      if (isZoomedOut(region)) {
         setStatus('zoomIn');
         return;
       }
-      await showCached(region);
 
       const tiles = tileKeysForBounds(boundsOfRegion(region));
       const stale = (await getStaleTiles(db, tiles, Date.now() - REFRESH_AFTER_MS)).slice(
@@ -107,6 +171,12 @@ export function useCatalog() {
     [showCached, syncOnce],
   );
 
+  // A new filter or a journal write (visit, wishlist, tags) only redraws; it never fetches.
+  useEffect(() => {
+    filterRef.current = filter;
+    if (latestRegion.current) void showCached(latestRegion.current);
+  }, [filter, journalRevision, showCached]);
+
   const onRegionChange = useCallback(
     (region: Region) => {
       latestRegion.current = region;
@@ -119,5 +189,12 @@ export function useCatalog() {
     requestSync(true);
   }, [requestSync]);
 
-  return { venues, status, onRegionChange, retry };
+  return {
+    places: shown.places,
+    cuisines: shown.cuisines,
+    hiddenByFilters: shown.hiddenByFilters,
+    status,
+    onRegionChange,
+    retry,
+  };
 }
