@@ -170,7 +170,7 @@ export async function saveNewVisit(db: SQLiteDatabase, input: NewVisitInput): Pr
     );
     if ((earlier?.n ?? 0) === 0) {
       await txn.runAsync(
-        'UPDATE journal_places SET wishlist = 0, updated_at = ? WHERE place_id = ? AND wishlist = 1',
+        'UPDATE journal_places SET wishlist = 0, wishlist_added_at = NULL, updated_at = ? WHERE place_id = ? AND wishlist = 1',
         [now, input.placeId],
       );
     }
@@ -246,8 +246,10 @@ export async function updateVisitDate(db: SQLiteDatabase, visitId: string, visit
 /** Deletes a visit and its reviews. The journal place (and its wishlist state) stays. */
 export async function deleteVisit(db: SQLiteDatabase, visitId: string) {
   await writeTransaction(db, async (txn) => {
+    const visit = await txn.getFirstAsync<{ place_id: string }>('SELECT place_id FROM visits WHERE id = ?', [visitId]);
     await txn.runAsync('DELETE FROM visit_reviews WHERE visit_id = ?', [visitId]);
     await txn.runAsync('DELETE FROM visits WHERE id = ?', [visitId]);
+    if (visit) await clearWantReturnIfUnvisited(txn, visit.place_id);
   });
   notifyJournalChanged();
 }
@@ -256,8 +258,8 @@ export async function deleteVisit(db: SQLiteDatabase, visitId: string) {
 export async function deleteReview(db: SQLiteDatabase, reviewId: string): Promise<{ visitDeleted: boolean }> {
   let visitDeleted = false;
   await writeTransaction(db, async (txn) => {
-    const review = await txn.getFirstAsync<{ visit_id: string }>(
-      'SELECT visit_id FROM visit_reviews WHERE id = ?',
+    const review = await txn.getFirstAsync<{ visit_id: string; place_id: string }>(
+      'SELECT r.visit_id, v.place_id FROM visit_reviews r JOIN visits v ON v.id = r.visit_id WHERE r.id = ?',
       [reviewId],
     );
     if (!review) return;
@@ -268,11 +270,21 @@ export async function deleteReview(db: SQLiteDatabase, reviewId: string): Promis
     );
     if ((left?.n ?? 0) === 0) {
       await txn.runAsync('DELETE FROM visits WHERE id = ?', [review.visit_id]);
+      await clearWantReturnIfUnvisited(txn, review.place_id);
       visitDeleted = true;
     }
   });
   notifyJournalChanged();
   return { visitDeleted };
+}
+
+/** "Want to go back" only makes sense for a visited place; drop it once no visits remain. */
+async function clearWantReturnIfUnvisited(txn: SQLiteDatabase, placeId: string) {
+  await txn.runAsync(
+    `UPDATE journal_places SET want_return = 0, updated_at = ?
+     WHERE place_id = ? AND want_return = 1 AND NOT EXISTS (SELECT 1 FROM visits WHERE place_id = ?)`,
+    [Date.now(), placeId, placeId],
+  );
 }
 
 export async function getVisit(db: SQLiteDatabase, visitId: string): Promise<Visit | null> {
