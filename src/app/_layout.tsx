@@ -9,8 +9,8 @@ import { DarkTheme, DefaultTheme, LocaleProvider, Stack, ThemeProvider } from 'e
 import * as SplashScreen from 'expo-splash-screen';
 import { SQLiteProvider } from 'expo-sqlite';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect, useMemo } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { useEffect, useMemo, useState } from 'react';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Colors, Fonts } from '@/constants/theme';
 import { DATABASE_NAME, initDatabase } from '@/data/database';
@@ -21,13 +21,55 @@ import { SettingsProvider, useSettings } from '@/settings/settings-provider';
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
+  const [dbError, setDbError] = useState(false);
+  const [attempt, setAttempt] = useState(0);
+
   return (
     <SettingsProvider>
-      {/* Renders its children only after the database is open and migrated. */}
-      <SQLiteProvider databaseName={DATABASE_NAME} onInit={initDatabase}>
-        <AppShell />
-      </SQLiteProvider>
+      {dbError ? (
+        <DatabaseError
+          onRetry={() => {
+            setDbError(false);
+            setAttempt((value) => value + 1);
+          }}
+        />
+      ) : (
+        // Renders its children only after the database is open and migrated.
+        <SQLiteProvider
+          key={attempt}
+          databaseName={DATABASE_NAME}
+          onInit={initDatabase}
+          onError={() => setDbError(true)}>
+          <AppShell />
+        </SQLiteProvider>
+      )}
     </SettingsProvider>
+  );
+}
+
+/** Shown if the journal database can't be opened (instead of a splash screen that never ends). */
+function DatabaseError({ onRetry }: { onRetry: () => void }) {
+  const t = useT();
+  const theme = Colors[useResolvedScheme()];
+  const { direction } = useLanguage();
+
+  useEffect(() => {
+    SplashScreen.hideAsync();
+  }, []);
+
+  return (
+    <View style={[styles.root, styles.center, { direction, backgroundColor: theme.background }]}>
+      <Text style={[styles.errorTitle, { color: theme.text, writingDirection: direction }]}>{t('app.dbErrorTitle')}</Text>
+      <Text style={[styles.errorBody, { color: theme.textSecondary, writingDirection: direction }]}>
+        {t('app.dbErrorBody')}
+      </Text>
+      <Pressable
+        accessibilityRole="button"
+        onPress={onRetry}
+        style={[styles.retry, { backgroundColor: theme.accent }]}>
+        <Text style={{ color: theme.onAccent, fontWeight: '700' }}>{t('map.retry')}</Text>
+      </Pressable>
+    </View>
   );
 }
 
@@ -145,5 +187,25 @@ function AppShell() {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
+  },
+  center: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 32,
+    gap: 16,
+  },
+  errorTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    textAlign: 'center',
+  },
+  errorBody: {
+    fontSize: 16,
+    textAlign: 'center',
+  },
+  retry: {
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 4,
   },
 });

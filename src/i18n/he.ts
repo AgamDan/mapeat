@@ -16,6 +16,8 @@ export const he: Translations = {
   'map.locate': 'הצגת המיקום שלי',
   'map.locationDenied': 'המיקום כבוי. אפשר להמשיך לדפדף במפה.',
   'map.webPreview': 'המפה זמינה באייפון.',
+  'app.dbErrorTitle': 'לא הצלחנו לפתוח את היומן שלכם',
+  'app.dbErrorBody': 'סגרו את האפליקציה לגמרי ופתחו אותה שוב. אם זה חוזר, הפעילו מחדש את הטלפון.',
   'kind.restaurant': 'מסעדה',
   'kind.cafe': 'בית קפה',
   'kind.fast_food': 'אוכל מהיר',

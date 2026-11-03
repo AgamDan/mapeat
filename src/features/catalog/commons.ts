@@ -15,6 +15,7 @@ type ImageInfo = {
 };
 
 const cache = new Map<string, Promise<CommonsPhoto | null>>();
+const COMMONS_TIMEOUT_MS = 15_000;
 
 function stripHtml(value: string) {
   return value.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
@@ -37,8 +38,15 @@ async function load(fileName: string): Promise<CommonsPhoto | null> {
     format: 'json',
     origin: '*',
   });
-  const response = await fetch(`https://commons.wikimedia.org/w/api.php?${params}`);
-  if (!response.ok) return null;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), COMMONS_TIMEOUT_MS);
+  let response: Response;
+  try {
+    response = await fetch(`https://commons.wikimedia.org/w/api.php?${params}`, { signal: controller.signal });
+  } finally {
+    clearTimeout(timer);
+  }
+  if (!response.ok) throw new Error(`Commons ${response.status}`);
   const json = (await response.json()) as { query?: { pages?: Record<string, { imageinfo?: ImageInfo[] }> } };
   const info = Object.values(json.query?.pages ?? {})[0]?.imageinfo?.[0];
   const meta = info?.extmetadata ?? {};
@@ -55,10 +63,17 @@ async function load(fileName: string): Promise<CommonsPhoto | null> {
   };
 }
 
+/**
+ * The licensed photo for a Commons file, or `null` if it has no usable license. Network failures
+ * resolve to `null` too but are not remembered, so the next visit to the place tries again.
+ */
 export function fetchCommonsPhoto(fileName: string) {
   let pending = cache.get(fileName);
   if (!pending) {
-    pending = load(fileName).catch(() => null);
+    pending = load(fileName).catch(() => {
+      cache.delete(fileName);
+      return null;
+    });
     cache.set(fileName, pending);
   }
   return pending;

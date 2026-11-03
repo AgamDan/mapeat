@@ -9,7 +9,7 @@ export type PersonId = 'a' | 'b';
 export type Person = { id: PersonId; name: string; color: Extract<ThemeColor, 'personA' | 'personB'> };
 
 /** Starting names chosen by the couple; renamable in Settings. */
-const DEFAULT_PEOPLE: readonly Person[] = [
+export const DEFAULT_PEOPLE: readonly Person[] = [
   { id: 'a', name: 'Artur', color: 'personA' },
   { id: 'b', name: 'Agam', color: 'personB' },
 ];

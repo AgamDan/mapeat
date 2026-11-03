@@ -27,6 +27,16 @@ function withScheme(url: string) {
   return /^https?:\/\//i.test(url) ? url : `https://${url}`;
 }
 
+/** Opens a link in the in-app browser; a failure (e.g. offline) is ignored rather than crashing. */
+function openInBrowser(url: string) {
+  WebBrowser.openBrowserAsync(url).catch(() => {});
+}
+
+/** Hands a URL to another app (e.g. Apple Maps); failures are ignored. */
+function openExternal(url: string) {
+  Linking.openURL(url).catch(() => {});
+}
+
 export default function PlaceScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const db = useSQLiteContext();
@@ -97,7 +107,7 @@ export default function PlaceScreen() {
             contentFit="cover"
             accessibilityLabel={primary ?? undefined}
           />
-          <Pressable accessibilityRole="link" onPress={() => WebBrowser.openBrowserAsync(photo.pageUrl)}>
+          <Pressable accessibilityRole="link" onPress={() => openInBrowser(photo.pageUrl)}>
             <ThemedText type="small" themeColor="textSecondary">
               {`${t('place.photoCredit')}: ${photo.author} · ${photo.license} · Wikimedia Commons`}
             </ThemedText>
@@ -133,14 +143,14 @@ export default function PlaceScreen() {
       {address ? <Detail label={t('place.address')} value={address} /> : null}
       {venue.openingHours ? <Detail label={t('place.hours')} value={venue.openingHours} /> : null}
       {venue.website ? (
-        <Pressable accessibilityRole="link" onPress={() => WebBrowser.openBrowserAsync(withScheme(venue.website!))}>
+        <Pressable accessibilityRole="link" onPress={() => openInBrowser(withScheme(venue.website!))}>
           <Detail label={t('place.website')} value={venue.website} link />
         </Pressable>
       ) : null}
 
       <Pressable
         accessibilityRole="button"
-        onPress={() => Linking.openURL(mapsUrl)}
+        onPress={() => openExternal(mapsUrl)}
         style={({ pressed }) => [styles.button, { borderColor: theme.line }, pressed && styles.pressed]}>
         <ThemedText type="defaultBold">{t('place.openInMaps')}</ThemedText>
       </Pressable>
@@ -182,7 +192,7 @@ export default function PlaceScreen() {
 
       <MenuPhotosSection placeId={venue.id} />
 
-      <Pressable accessibilityRole="link" onPress={() => WebBrowser.openBrowserAsync(osmUrl)}>
+      <Pressable accessibilityRole="link" onPress={() => openInBrowser(osmUrl)}>
         <ThemedText type="small" themeColor="textSecondary">
           {t('place.dataSource')}
         </ThemedText>
@@ -197,12 +207,20 @@ function Detail({ label, value, link = false }: { label: string; value: string; 
       <ThemedText type="smallBold" themeColor="textSecondary">
         {label}
       </ThemedText>
-      <ThemedText themeColor={link ? 'accent' : 'text'}>{value}</ThemedText>
+      <ThemedText
+        themeColor={link ? 'accent' : 'text'}
+        // URLs are Latin text; in Hebrew, right-to-left order would scramble their punctuation.
+        style={link ? styles.ltrText : undefined}>
+        {value}
+      </ThemedText>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  ltrText: {
+    writingDirection: 'ltr',
+  },
   center: {
     flex: 1,
     alignItems: 'center',

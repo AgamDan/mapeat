@@ -90,18 +90,22 @@ export function useCatalog(filter: MapFilter, journalRevision: number) {
           ? getAllJournalMapPlaces(db, next, MAX_MARKERS, { lat: region.latitude, lon: region.longitude })
           : placesInView(bounds, next);
 
-      const places = await load(current);
-      const withoutCuisine = current.cuisine ? await load({ ...current, cuisine: null }) : places;
-      let hiddenByFilters = false;
-      if (places.length === 0 && activeFilterCount(current) > 0) {
-        const unfiltered = zoomedOut
-          ? await getAllJournalMapPlaces(db, DEFAULT_MAP_FILTER, 1)
-          : await getPlacesInBounds(db, bounds, 1);
-        hiddenByFilters = unfiltered.length > 0;
-      }
-      // Ignore results that arrive after a newer query was started.
-      if (seq === showSeq.current) {
-        setShown({ places, cuisines: cuisinesOf(withoutCuisine), hiddenByFilters });
+      try {
+        const places = await load(current);
+        const withoutCuisine = current.cuisine ? await load({ ...current, cuisine: null }) : places;
+        let hiddenByFilters = false;
+        if (places.length === 0 && activeFilterCount(current) > 0) {
+          const unfiltered = zoomedOut
+            ? await getAllJournalMapPlaces(db, DEFAULT_MAP_FILTER, 1)
+            : await getPlacesInBounds(db, bounds, 1);
+          hiddenByFilters = unfiltered.length > 0;
+        }
+        // Ignore results that arrive after a newer query was started.
+        if (seq === showSeq.current) {
+          setShown({ places, cuisines: cuisinesOf(withoutCuisine), hiddenByFilters });
+        }
+      } catch {
+        // A failed cache read keeps the pins already on screen; the next map move retries.
       }
     },
     [db, placesInView],
@@ -163,7 +167,12 @@ export function useCatalog(filter: MapFilter, journalRevision: number) {
           while (pending.current !== null) {
             const nextForce = pending.current;
             pending.current = null;
-            await syncOnce(nextForce);
+            try {
+              await syncOnce(nextForce);
+            } catch {
+              // e.g. a failed tile lookup: report it and keep the worker alive for the next request.
+              setStatus('error');
+            }
           }
         } finally {
           running.current = false;

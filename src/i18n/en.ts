@@ -14,6 +14,8 @@ export const en = {
   'map.locate': 'Show my location',
   'map.locationDenied': 'Location is off. You can still browse the map.',
   'map.webPreview': 'The map is available on iPhone.',
+  'app.dbErrorTitle': "MapEat couldn't open your journal",
+  'app.dbErrorBody': 'Close the app completely and open it again. If it keeps happening, restart the phone.',
   'kind.restaurant': 'Restaurant',
   'kind.cafe': 'Café',
   'kind.fast_food': 'Fast food',

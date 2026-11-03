@@ -2,7 +2,7 @@ import { useSQLiteContext } from 'expo-sqlite';
 import { useEffect, useState } from 'react';
 
 import { useJournalRevision } from '@/data/journal-events';
-import { getPeople, type Person, type PersonId } from '@/data/people';
+import { DEFAULT_PEOPLE, getPeople, type Person, type PersonId } from '@/data/people';
 
 /** The two journal members, refreshed after renames. */
 export function usePeople() {
@@ -13,7 +13,9 @@ export function usePeople() {
   useEffect(() => {
     let cancelled = false;
     getPeople(db)
-      .catch(() => [])
+      // If the names can't be read, show the default names rather than spinning forever.
+      .then((result) => (result.length > 0 ? result : [...DEFAULT_PEOPLE]))
+      .catch(() => [...DEFAULT_PEOPLE])
       .then((result) => {
         if (!cancelled) setPeople(result);
       });
