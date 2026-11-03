@@ -51,7 +51,7 @@ export function ScreenHeader({
           ]}>
           <SymbolView
             name={{ ios: 'gearshape', android: 'settings', web: 'settings' }}
-            size={17}
+            size={22}
             tintColor={theme.text}
           />
         </Pressable>
@@ -92,8 +92,8 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 3 },
   },
   gear: {
-    width: 36,
-    height: 36,
+    width: 44,
+    height: 44,
     borderRadius: Radius.pill,
     alignItems: 'center',
     justifyContent: 'center',

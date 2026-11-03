@@ -63,7 +63,7 @@ function PinBody({
   const theme = useTheme();
 
   if (photoFile) {
-    const size = selected ? 52 : 42;
+    const size = selected ? 72 : 60;
     return (
       <View style={[styles.photoHitArea, { width: size + 12, height: size + 12 }]} collapsable={false}>
         <View
@@ -239,7 +239,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   photoFrame: {
-    borderWidth: 3,
+    borderWidth: 3.5,
     overflow: 'hidden',
   },
   photo: {
