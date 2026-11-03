@@ -125,6 +125,8 @@ export const he: Translations = {
   'filters.done': 'הצגת המקומות',
   'filters.activeCount': '{count} פעילים',
   'filters.noResults': 'אין כאן מקומות שמתאימים לסינון.',
+  'filters.onNote': 'הסינון פעיל',
+  'filters.clear': 'ניקוי',
   'photos.title': 'תמונות',
   'photos.ourPhotos': 'התמונות שלנו',
   'photos.add': 'הוספת תמונות',

@@ -294,6 +294,28 @@ export type JournalStatus = 'visited' | 'wishlist' | 'none';
 
 export type MapPlace = Venue & { status: JournalStatus; wantReturn: boolean };
 
+type MapPlaceRow = PlaceRow & { is_visited: number; wishlist: number | null; want_return: number | null };
+
+/** SQL for a place row with its journal status (alias p for places). */
+const MAP_PLACE_SELECT = `SELECT p.*, EXISTS (SELECT 1 FROM visits v WHERE v.place_id = p.id) AS is_visited, jp.wishlist, jp.want_return
+     FROM places p LEFT JOIN journal_places jp ON jp.place_id = p.id`;
+
+/** Visited wins over wishlist when both are set. */
+function toMapPlace(row: MapPlaceRow): MapPlace | null {
+  const venue = toVenue(row);
+  if (!venue) return null;
+  return {
+    ...venue,
+    status: row.is_visited ? 'visited' : row.wishlist === 1 ? 'wishlist' : 'none',
+    wantReturn: row.want_return === 1,
+  };
+}
+
+/** One place with its journal status, ignoring map filters (e.g. the place just opened from search). */
+export async function getMapPlace(db: SQLiteDatabase, id: string) {
+  const row = await db.getFirstAsync<MapPlaceRow>(`${MAP_PLACE_SELECT} WHERE p.id = ?`, [id]);
+  return row ? toMapPlace(row) : null;
+}
 export type MapShow = 'all' | 'journal' | 'visited' | 'wishlist';
 
 export type MapFilter = {
@@ -352,17 +374,8 @@ export async function getMapPlaces(
      LIMIT ?`,
     [...params, centerLat, centerLat, centerLon, centerLon, limit],
   );
-  const places: MapPlace[] = [];
-  for (const row of rows) {
-    const venue = toVenue(row);
-    if (!venue) continue;
-    places.push({
-      ...venue,
-      status: row.is_visited ? 'visited' : row.wishlist === 1 ? 'wishlist' : 'none',
-      wantReturn: row.want_return === 1,
-    });
-  }
-  return places;
+  return rows.map(toMapPlace).filter((place): place is MapPlace => place !== null);
+
 }
 
 /** Every journal place (visited, wishlist, or "want to go back") anywhere, nearest to `near` first. */
@@ -416,15 +429,5 @@ export async function searchPlaces(
      LIMIT ?`,
     [pattern, pattern, pattern, prefix, prefix, prefix, ...(near ? [lat, lat, lon, lon] : []), limit],
   );
-  const places: MapPlace[] = [];
-  for (const row of rows) {
-    const venue = toVenue(row);
-    if (!venue) continue;
-    places.push({
-      ...venue,
-      status: row.is_visited ? 'visited' : row.wishlist === 1 ? 'wishlist' : 'none',
-      wantReturn: row.want_return === 1,
-    });
-  }
-  return places;
+  return rows.map(toMapPlace).filter((place): place is MapPlace => place !== null);
 }

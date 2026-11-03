@@ -25,6 +25,9 @@ Expected split value: M2 small (visit form vs. place visit history, after the da
 - Place photos: only ~1 in 3,600 OSM venues links a photo, and Google Places needs billing (excluded). User chose: a "See photos on Google Maps" button (free URL scheme), and an "Our photo" header on the place page when there's no public photo (cover, else newest visit photo, else newest menu photo; `getHeaderPhoto` / `useHeaderPhoto`). Pushed as `a54faa2`.
 - Redesign: user disliked Frank Ruhl Libre. Research (Apple text sizes, Hebrew Google Fonts, WCAG-checked palettes) → three mockups in `.superpowers/brainstorm/mapeat-type-color-20261104/` (gitignored). User chose Rubik (titles, numbers) + Heebo (text), Apple sizes with Hebrew +1 pt, light colors "fresh" (C), dark colors "calm" (B). Built in `theme.ts`, `themed-text.tsx`, `_layout.tsx`; `Fonts.black` became `Fonts.displayHeavy`. Splash background colors updated; the app icon still uses the old palette.
 - Verified: typecheck, lint, iOS bundle, web preview in Hebrew dark and English light. **Not yet verified on the iPhone**: native tab label fonts, long Hebrew strings at the larger sizes.
+- Fonts are imported per weight (`@expo-google-fonts/rubik/700Bold`, `useFonts` from `expo-font`) so only 6 files are bundled. After installing font packages, restart Metro with `npx expo start --go --clear` (a running Metro reports "Unable to resolve module …ttf").
+- Map header shows the MapEat wordmark with a pin-and-plate mark (`src/components/brand-mark.tsx`, drawn with views; `ScreenHeader brand`).
+- Search vs. filters (user choice): a place opened from search stays drawn even if the filters would hide it (`getMapPlace` + a filter-match check in the map screen), with a "Filters are on · Clear" note next to the filter button. Picking another place on the map drops it.
 
 ## Milestone 6 (polish) — November 3, 2026
 

@@ -17,7 +17,7 @@ const OPEN_DELAY_MS = 700;
  * `flyTo` and `openPlace` should be stable callbacks.
  */
 export function useMapFocusRequests(
-  flyTo: (latitude: number, longitude: number) => void,
+  flyTo: (latitude: number, longitude: number, placeId: string) => void,
   openPlace: (id: string) => void,
 ) {
   const version = useMapFocusVersion();
@@ -28,7 +28,7 @@ export function useMapFocusRequests(
       void version;
       const focus = takeMapFocus();
       if (!focus) return;
-      flyTo(focus.latitude, focus.longitude);
+      flyTo(focus.latitude, focus.longitude, focus.placeId);
       let opened = false;
       const timer = setTimeout(() => {
         opened = true;

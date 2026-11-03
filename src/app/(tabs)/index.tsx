@@ -9,7 +9,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ScreenHeader } from '@/components/screen-header';
 import { ThemedText } from '@/components/themed-text';
 import { Radius, Spacing } from '@/constants/theme';
-import { listTags, type MapPlace } from '@/data/journal';
+import { getMapPlace, getMapPlaces, listTags, type MapPlace } from '@/data/journal';
 import { useJournalRevision } from '@/data/journal-events';
 import { KIND_LABEL_KEYS, venueNames } from '@/features/catalog/labels';
 import type { Region } from '@/features/catalog/tiles';
@@ -17,7 +17,13 @@ import { useCatalog } from '@/features/catalog/use-catalog';
 import { FilterButton } from '@/features/map/filter-button';
 import { JournalMap, type JournalMapHandle } from '@/features/map/journal-map';
 import { setMapCenter } from '@/features/map/map-center-store';
-import { activeFilterCount, getMapFilter, setMapFilter, useMapFilter } from '@/features/map/map-filter-store';
+import {
+  activeFilterCount,
+  getMapFilter,
+  resetMapFilter,
+  setMapFilter,
+  useMapFilter,
+} from '@/features/map/map-filter-store';
 import { MapHint } from '@/features/map/map-hint';
 import { SearchButton } from '@/features/map/search-button';
 import { useMapFocusRequests } from '@/features/map/use-map-focus';
@@ -35,7 +41,7 @@ export default function MapScreen() {
   const t = useT();
   const theme = useTheme();
   const scheme = useResolvedScheme();
-  const { language } = useLanguage();
+  const { language, direction } = useLanguage();
   const filter = useMapFilter();
   const journalRevision = useJournalRevision();
   const { places, cuisines, hiddenByFilters, status, onRegionChange, retry } = useCatalog(
@@ -89,7 +95,45 @@ export default function MapScreen() {
     router.push({ pathname: '/place/[id]', params: { id } });
   }, []);
 
-  const flyToPlace = useCallback((latitude: number, longitude: number) => {
+  // The place opened from search stays on the map even if the filters would hide it,
+  // until another place is picked on the map.
+  const [searchedId, setSearchedId] = useState<string | null>(null);
+  const [searchedResult, setSearchedResult] = useState<{ place: MapPlace; matchesFilter: boolean } | null>(null);
+  useEffect(() => {
+    if (!searchedId) return;
+    let active = true;
+    (async () => {
+      const place = await getMapPlace(db, searchedId);
+      if (!place) return null;
+      const near = 0.000_01;
+      const bounds = { south: place.lat - near, north: place.lat + near, west: place.lon - near, east: place.lon + near };
+      const matching = await getMapPlaces(db, bounds, filter, 50);
+      return { place, matchesFilter: matching.some((other) => other.id === place.id) };
+    })()
+      .then((next) => {
+        if (active) setSearchedResult(next);
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, [db, searchedId, filter, journalRevision]);
+
+  const pickOnMap = useCallback(
+    (id: string) => {
+      setSearchedId((current) => (current === id ? current : null));
+      openPlace(id);
+    },
+    [openPlace],
+  );
+
+  const searched = searchedResult && searchedResult.place.id === searchedId ? searchedResult : null;
+  const searchedHidden = searched != null && !searched.matchesFilter;
+  const shownPlaces =
+    searched && !places.some((place) => place.id === searched.place.id) ? [...places, searched.place] : places;
+
+  const flyToPlace = useCallback((latitude: number, longitude: number, placeId: string) => {
+    setSearchedId(placeId);
     mapRef.current?.animateTo(latitude, longitude, PLACE_DELTA);
   }, []);
 
@@ -146,12 +190,12 @@ export default function MapScreen() {
       <JournalMap
         ref={mapRef}
         initialRegion={INITIAL_REGION}
-        places={places}
+        places={shownPlaces}
         selectedId={selectedId}
         scheme={scheme}
         showsUserLocation={showsUserLocation}
         placeLabel={placeLabel}
-        onSelectPlace={openPlace}
+        onSelectPlace={pickOnMap}
         onRegionChangeComplete={regionChanged}
       />
 
@@ -179,7 +223,19 @@ export default function MapScreen() {
 
       <SafeAreaView edges={['bottom']} pointerEvents="box-none" style={styles.bottom}>
         <SearchButton onPress={() => router.push('/search')} />
-        <FilterButton activeCount={filterCount} onPress={() => router.push('/map-filters')} />
+        <View style={styles.filterRow}>
+          {searchedHidden ? (
+            <View style={[styles.filtersOn, { backgroundColor: theme.card, direction }]}>
+              <ThemedText type="small">{t('filters.onNote')}</ThemedText>
+              <Pressable accessibilityRole="button" onPress={resetMapFilter} hitSlop={10}>
+                <ThemedText type="smallBold" themeColor="accent">
+                  {t('filters.clear')}
+                </ThemedText>
+              </Pressable>
+            </View>
+          ) : null}
+          <FilterButton activeCount={filterCount} onPress={() => router.push('/map-filters')} />
+        </View>
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={t('map.locate')}
@@ -253,6 +309,20 @@ const styles = StyleSheet.create({
     borderRadius: Radius.pill,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  filterRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.two,
+  },
+  filtersOn: {
+    ...shadow,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.two,
+    minHeight: 36,
+    paddingHorizontal: Spacing.three,
+    borderRadius: Radius.pill,
   },
   pressed: {
     opacity: 0.7,

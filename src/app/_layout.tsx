@@ -1,11 +1,11 @@
-import {
-  Heebo_400Regular,
-  Heebo_500Medium,
-  Heebo_600SemiBold,
-  Heebo_700Bold,
-  useFonts,
-} from '@expo-google-fonts/heebo';
-import { Rubik_700Bold, Rubik_800ExtraBold } from '@expo-google-fonts/rubik';
+// Per-weight imports, so only these six font files are bundled (not every weight and italic).
+import { Heebo_400Regular } from '@expo-google-fonts/heebo/400Regular';
+import { Heebo_500Medium } from '@expo-google-fonts/heebo/500Medium';
+import { Heebo_600SemiBold } from '@expo-google-fonts/heebo/600SemiBold';
+import { Heebo_700Bold } from '@expo-google-fonts/heebo/700Bold';
+import { Rubik_700Bold } from '@expo-google-fonts/rubik/700Bold';
+import { Rubik_800ExtraBold } from '@expo-google-fonts/rubik/800ExtraBold';
+import { useFonts } from 'expo-font';
 import { DarkTheme, DefaultTheme, LocaleProvider, Stack, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { SQLiteProvider } from 'expo-sqlite';

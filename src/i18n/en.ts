@@ -123,6 +123,8 @@ export const en = {
   'filters.done': 'Show places',
   'filters.activeCount': '{count} active',
   'filters.noResults': 'No places here match the filters.',
+  'filters.onNote': 'Filters are on',
+  'filters.clear': 'Clear',
   'photos.title': 'Photos',
   'photos.ourPhotos': 'Our photos',
   'photos.add': 'Add photos',
