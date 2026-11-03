@@ -29,6 +29,7 @@ import { SearchButton } from '@/features/map/search-button';
 import { useMapFocusRequests } from '@/features/map/use-map-focus';
 import { useMapPhotos } from '@/features/map/use-map-photos';
 import { setVisibleCuisines } from '@/features/map/visible-cuisines-store';
+import { DiceButton } from '@/features/tonight/dice-button';
 import { useResolvedScheme, useTheme } from '@/hooks/use-theme';
 import { useLanguage, useT } from '@/i18n/i18n';
 
@@ -229,6 +230,7 @@ export default function MapScreen() {
       </View>
 
       <SafeAreaView edges={['bottom']} pointerEvents="box-none" style={styles.bottom}>
+        <DiceButton onPress={() => router.push('/tonight')} />
         <SearchButton onPress={() => router.push('/search')} />
         <View style={styles.filterRow}>
           {searchedHidden ? (
