@@ -112,6 +112,7 @@ export default function TimelineScreen() {
               visit={item}
               people={people}
               placeName={(item.venue && venueNames(item.venue, language).primary) || t('place.unnamed')}
+              linkPlace={item.venue !== null}
             />
           </View>
         )}

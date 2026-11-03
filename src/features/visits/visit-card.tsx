@@ -16,6 +16,8 @@ type VisitCardProps = {
   people: Person[];
   /** Shown above the date, e.g. on the Timeline where cards come from many places. */
   placeName?: string | null;
+  /** With `placeName`: tapping the name opens this place's page. */
+  linkPlace?: boolean;
   /** When true (default), tapping the date opens the visit screen. */
   openable?: boolean;
 };
@@ -24,35 +26,47 @@ type VisitCardProps = {
  * One visit as a stamped postcard. Its "back" has two halves — one per person, each in their own
  * ink — so both reviews of the same visit are read together. In RTL the halves flip naturally.
  */
-export function VisitCard({ visit, people, placeName, openable = true }: VisitCardProps) {
+export function VisitCard({ visit, people, placeName, linkPlace = false, openable = true }: VisitCardProps) {
   const theme = useTheme();
   const { language } = useLanguage();
   const date = formatVisitDate(visit.visitDate, language, 'long');
 
-  const heading = (
-    <View style={styles.heading}>
-      {placeName ? (
-        <ThemedText type="smallBold" themeColor="textSecondary" numberOfLines={1}>
+  const dateText = <ThemedText type="subtitle">{date}</ThemedText>;
+  const place = placeName ? (
+    linkPlace ? (
+      <Pressable
+        accessibilityRole="link"
+        accessibilityLabel={placeName}
+        hitSlop={8}
+        onPress={() => router.push({ pathname: '/place/[id]', params: { id: visit.placeId } })}
+        style={({ pressed }) => pressed && styles.pressed}>
+        <ThemedText type="smallBold" themeColor="accent" numberOfLines={1}>
           {placeName}
         </ThemedText>
-      ) : null}
-      <ThemedText type="subtitle">{date}</ThemedText>
-    </View>
-  );
+      </Pressable>
+    ) : (
+      <ThemedText type="smallBold" themeColor="textSecondary" numberOfLines={1}>
+        {placeName}
+      </ThemedText>
+    )
+  ) : null;
 
   return (
     <Postcard stamp={visit.visitDate.slice(0, 4)} style={styles.card}>
-      {openable ? (
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={placeName ? `${placeName}, ${date}` : date}
-          onPress={() => router.push({ pathname: '/visit/[id]', params: { id: visit.id } })}
-          style={({ pressed }) => pressed && styles.pressed}>
-          {heading}
-        </Pressable>
-      ) : (
-        heading
-      )}
+      <View style={styles.heading}>
+        {place}
+        {openable ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={placeName ? `${placeName}, ${date}` : date}
+            onPress={() => router.push({ pathname: '/visit/[id]', params: { id: visit.id } })}
+            style={({ pressed }) => pressed && styles.pressed}>
+            {dateText}
+          </Pressable>
+        ) : (
+          dateText
+        )}
+      </View>
       <View style={[styles.back, { borderTopColor: theme.line }]}>
         {people.map((person, index) => (
           <View

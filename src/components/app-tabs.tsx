@@ -10,6 +10,8 @@ export default function AppTabs() {
 
   return (
     <NativeTabs
+      // FlatList/SectionList screens may not report their scroll edge, which can leave the bar transparent.
+      disableTransparentOnScrollEdge
       backgroundColor={theme.backgroundRaised}
       tintColor={theme.accent}
       iconColor={{ default: theme.textSecondary, selected: theme.accent }}
