@@ -1,0 +1,44 @@
+import { useFocusEffect } from 'expo-router';
+import { useCallback } from 'react';
+
+import { requestMapFocus, takeMapFocus, usePendingMapFocus } from '@/features/map/map-focus-store';
+
+/**
+ * Wait before opening the place sheet: lets a closing modal (e.g. search) finish dismissing —
+ * presenting a sheet mid-dismissal is unreliable on iOS — and the map finish flying there.
+ */
+const OPEN_DELAY_MS = 700;
+
+/**
+ * Runs map focus requests while the Map tab is focused: fly to the place right away, then open it
+ * once. A request made from a modal is handled when the tab regains focus as the modal closes. If
+ * the tab loses focus before the place opens, the request is put back and runs on the next focus.
+ * `flyTo` and `openPlace` should be stable callbacks.
+ */
+export function useMapFocusRequests(
+  flyTo: (latitude: number, longitude: number) => void,
+  openPlace: (id: string) => void,
+) {
+  const pending = usePendingMapFocus();
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!pending) return;
+      const focus = takeMapFocus();
+      if (!focus) return;
+      flyTo(focus.latitude, focus.longitude);
+      let opened = false;
+      const timer = setTimeout(() => {
+        opened = true;
+        openPlace(focus.placeId);
+      }, OPEN_DELAY_MS);
+      return () => {
+        clearTimeout(timer);
+        if (opened) return;
+        // A newer request wins over the interrupted one.
+        const { placeId, latitude, longitude } = takeMapFocus() ?? focus;
+        requestMapFocus({ placeId, latitude, longitude });
+      };
+    }, [pending, flyTo, openPlace]),
+  );
+}

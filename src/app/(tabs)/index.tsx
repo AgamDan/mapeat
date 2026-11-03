@@ -12,10 +12,15 @@ import { Radius, Spacing } from '@/constants/theme';
 import { listTags, type MapPlace } from '@/data/journal';
 import { useJournalRevision } from '@/data/journal-events';
 import { KIND_LABEL_KEYS, venueNames } from '@/features/catalog/labels';
+import type { Region } from '@/features/catalog/tiles';
 import { useCatalog } from '@/features/catalog/use-catalog';
 import { FilterButton } from '@/features/map/filter-button';
 import { JournalMap, type JournalMapHandle } from '@/features/map/journal-map';
+import { setMapCenter } from '@/features/map/map-center-store';
 import { activeFilterCount, getMapFilter, setMapFilter, useMapFilter } from '@/features/map/map-filter-store';
+import { MapHint } from '@/features/map/map-hint';
+import { SearchButton } from '@/features/map/search-button';
+import { useMapFocusRequests } from '@/features/map/use-map-focus';
 import { setVisibleCuisines } from '@/features/map/visible-cuisines-store';
 import { useResolvedScheme, useTheme } from '@/hooks/use-theme';
 import { useLanguage, useT } from '@/i18n/i18n';
@@ -23,6 +28,8 @@ import { useLanguage, useT } from '@/i18n/i18n';
 /** Central Tel Aviv, the first coverage area. */
 const INITIAL_REGION = { latitude: 32.0809, longitude: 34.7806, latitudeDelta: 0.03, longitudeDelta: 0.03 };
 const NOTE_DURATION_MS = 4_000;
+/** Street-level zoom when flying to a single place (e.g. from search). */
+const PLACE_DELTA = 0.006;
 
 export default function MapScreen() {
   const t = useT();
@@ -82,6 +89,20 @@ export default function MapScreen() {
     router.push({ pathname: '/place/[id]', params: { id } });
   }, []);
 
+  const flyToPlace = useCallback((latitude: number, longitude: number) => {
+    mapRef.current?.animateTo(latitude, longitude, PLACE_DELTA);
+  }, []);
+
+  useMapFocusRequests(flyToPlace, openPlace);
+
+  const regionChanged = useCallback(
+    (region: Region) => {
+      setMapCenter(region.latitude, region.longitude);
+      onRegionChange(region);
+    },
+    [onRegionChange],
+  );
+
   const locate = useCallback(async () => {
     // Permission is requested only when the user asks for their location.
     const permission = await Location.requestForegroundPermissionsAsync().catch(() => null);
@@ -131,7 +152,7 @@ export default function MapScreen() {
         showsUserLocation={showsUserLocation}
         placeLabel={placeLabel}
         onSelectPlace={openPlace}
-        onRegionChangeComplete={onRegionChange}
+        onRegionChangeComplete={regionChanged}
       />
 
       <View pointerEvents="box-none" style={styles.top}>
@@ -153,9 +174,11 @@ export default function MapScreen() {
             ) : null}
           </View>
         ) : null}
+        <MapHint />
       </View>
 
       <SafeAreaView edges={['bottom']} pointerEvents="box-none" style={styles.bottom}>
+        <SearchButton onPress={() => router.push('/search')} />
         <FilterButton activeCount={filterCount} onPress={() => router.push('/map-filters')} />
         <Pressable
           accessibilityRole="button"

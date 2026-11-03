@@ -9,7 +9,8 @@ import { venueAtPoint, type Size } from '@/features/map/hit-test';
 import { PlaceMarker, placeMarkerKey } from '@/features/map/place-pin';
 
 export type JournalMapHandle = {
-  animateTo: (latitude: number, longitude: number) => void;
+  /** Fly to a point; `delta` is the span in degrees shown around it (smaller is closer). */
+  animateTo: (latitude: number, longitude: number, delta?: number) => void;
 };
 
 export type JournalMapProps = {
@@ -64,9 +65,9 @@ export function JournalMap({
   useImperativeHandle(
     ref,
     () => ({
-      animateTo: (latitude, longitude) =>
+      animateTo: (latitude, longitude, delta = 0.012) =>
         mapRef.current?.animateToRegion(
-          { latitude, longitude, latitudeDelta: 0.012, longitudeDelta: 0.012 },
+          { latitude, longitude, latitudeDelta: delta, longitudeDelta: delta },
           500,
         ),
     }),
