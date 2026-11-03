@@ -1,5 +1,6 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
+import { SymbolView } from 'expo-symbols';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
@@ -14,6 +15,7 @@ import { KIND_LABEL_KEYS, venueNames } from '@/features/catalog/labels';
 import type { Venue } from '@/features/catalog/types';
 import { usePeople } from '@/features/people/use-people';
 import { VisitPhotosSection } from '@/features/photos/visit-photos-section';
+import { useShareVisit } from '@/features/share/use-share-visit';
 import { VisitCard } from '@/features/visits/visit-card';
 import { useResolvedScheme, useTheme } from '@/hooks/use-theme';
 import type { TranslationKey } from '@/i18n/en';
@@ -61,6 +63,7 @@ export default function VisitScreen() {
   const [busy, setBusy] = useState(false);
   // Set while this screen deletes the visit, so it closes instead of flashing "not found".
   const [closing, setClosing] = useState(false);
+  const { share, sharing, card: shareCard } = useShareVisit();
 
   if (closing) return null;
 
@@ -161,59 +164,92 @@ export default function VisitScreen() {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.content}>
-      <ThemedText type="title">{placeName}</ThemedText>
+    <View style={styles.screen}>
+      {/* Drawn beneath the opaque scroll view, so it can be captured without being seen. */}
+      {shareCard}
+      <ScrollView
+        style={[styles.screen, { backgroundColor: theme.background }]}
+        contentContainerStyle={styles.content}>
+        <ThemedText type="title">{placeName}</ThemedText>
 
-      <VisitCard visit={visit} people={people} openable={false} showPhotos={false} />
+        <VisitCard visit={visit} people={people} openable={false} showPhotos={false} />
 
-      <VisitPhotosSection placeId={visit.placeId} visitId={visit.id} />
+        <Pressable
+          accessibilityRole="button"
+          accessibilityState={{ disabled: sharing, busy: sharing }}
+          disabled={sharing}
+          onPress={() => share({ visit, people, placeName })}
+          style={({ pressed }) => [
+            styles.button,
+            { borderColor: theme.sea },
+            (pressed || sharing) && styles.pressed,
+          ]}>
+          {sharing ? (
+            <ActivityIndicator color={theme.sea} />
+          ) : (
+            <SymbolView
+              name={{ ios: 'square.and.arrow.up', android: 'share', web: 'share' }}
+              size={17}
+              tintColor={theme.sea}
+            />
+          )}
+          <ThemedText type="defaultBold" themeColor="sea">
+            {t('share.button')}
+          </ThemedText>
+        </Pressable>
 
-      <View style={[styles.panel, { borderColor: theme.line, backgroundColor: theme.backgroundRaised }]}>
-        <DateField label={t('visit.changeDate')} value={visit.visitDate} onChange={changeDate} />
-      </View>
+        <VisitPhotosSection placeId={visit.placeId} visitId={visit.id} />
 
-      <View style={styles.actions}>
-        {reviewed.map(({ person, review }) => (
+        <View style={[styles.panel, { borderColor: theme.line, backgroundColor: theme.backgroundRaised }]}>
+          <DateField label={t('visit.changeDate')} value={visit.visitDate} onChange={changeDate} />
+        </View>
+
+        <View style={styles.actions}>
+          {reviewed.map(({ person, review }) => (
+            <Pressable
+              key={person.id}
+              accessibilityRole="button"
+              accessibilityLabel={`${t('visit.deleteReview')}: ${person.name}`}
+              accessibilityState={{ disabled: busy }}
+              disabled={busy}
+              onPress={() => confirmDeleteReview(person, review)}
+              style={({ pressed }) => [
+                styles.button,
+                { borderColor: theme.line },
+                (pressed || busy) && styles.pressed,
+              ]}>
+              <ThemedText type="defaultBold" themeColor="accent">
+                {t('visit.deleteReview')}
+              </ThemedText>
+              <ThemedText type="smallBold" style={{ color: theme[person.color] }}>
+                {person.name}
+              </ThemedText>
+            </Pressable>
+          ))}
           <Pressable
-            key={person.id}
             accessibilityRole="button"
-            accessibilityLabel={`${t('visit.deleteReview')}: ${person.name}`}
             accessibilityState={{ disabled: busy }}
             disabled={busy}
-            onPress={() => confirmDeleteReview(person, review)}
+            onPress={confirmDeleteVisit}
             style={({ pressed }) => [
               styles.button,
-              { borderColor: theme.line },
+              { borderColor: theme.accent },
               (pressed || busy) && styles.pressed,
             ]}>
             <ThemedText type="defaultBold" themeColor="accent">
-              {t('visit.deleteReview')}
-            </ThemedText>
-            <ThemedText type="smallBold" style={{ color: theme[person.color] }}>
-              {person.name}
+              {t('visit.deleteVisit')}
             </ThemedText>
           </Pressable>
-        ))}
-        <Pressable
-          accessibilityRole="button"
-          accessibilityState={{ disabled: busy }}
-          disabled={busy}
-          onPress={confirmDeleteVisit}
-          style={({ pressed }) => [
-            styles.button,
-            { borderColor: theme.accent },
-            (pressed || busy) && styles.pressed,
-          ]}>
-          <ThemedText type="defaultBold" themeColor="accent">
-            {t('visit.deleteVisit')}
-          </ThemedText>
-        </Pressable>
-      </View>
-    </ScrollView>
+        </View>
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  screen: {
+    flex: 1,
+  },
   center: {
     flex: 1,
     alignItems: 'center',
