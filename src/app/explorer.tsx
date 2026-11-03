@@ -19,7 +19,7 @@ function useCounts() {
   const t = useT();
   return (places: number | null, visits: number) =>
     [
-      places === null ? null : t('explorer.places', { count: places }),
+      places === null ? null : places === 1 ? t('explorer.placesOne') : t('explorer.places', { count: places }),
       visits === 1 ? t('place.visitCountOne') : t('explorer.visits', { count: visits }),
     ]
       .filter(Boolean)
@@ -51,7 +51,13 @@ export default function ExplorerScreen() {
 
   return (
     <ScrollView contentInsetAdjustmentBehavior="automatic" contentContainerStyle={styles.content}>
-      {summary === null || summary.placeCount === 0 ? (
+      {summary === null ? (
+        <EmptyState
+          symbol={{ ios: 'exclamationmark.triangle', android: 'error', web: 'error' }}
+          title={t('explorer.title')}
+          body={t('explorer.loadFailed')}
+        />
+      ) : summary.placeCount === 0 ? (
         <EmptyState
           symbol={{ ios: 'map', android: 'map', web: 'map' }}
           title={t('explorer.title')}

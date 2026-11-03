@@ -242,6 +242,8 @@ export const en = {
   'explorer.cities': 'Cities',
   'explorer.neighborhoods': 'Neighborhoods',
   'explorer.places': '{count} places',
+  'explorer.placesOne': '1 place',
+  'explorer.loadFailed': "Couldn't load your map progress.",
   'explorer.visits': '{count} visits',
   'explorer.empty': 'Visit a place to start filling your map.',
   'explorer.unknownArea': 'Somewhere else',

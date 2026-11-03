@@ -20,6 +20,12 @@ The user asked that work be split across parallel sub-agents where safe. Continu
 
 Expected split value: M2 small (visit form vs. place visit history, after the data layer), M3 high (wishlist / tags / timeline), M4 medium (menu-photo vs. visit-photo UI after one storage layer), M5 low, M6 parallel read-only audits (RTL, error states).
 
+## Milestone 7 (extras) — November 4, 2026
+
+- Built by four parallel agents and merged: optional Food/Service/Vibe ratings (form section, visit card, per-person averages on the place summary; compact pickers are two rows of five, 44 pt); dishes per visit with each person's 👍/👎 and the place-page "Our dishes here" verdicts; "Where tonight?" (dice on the map; wishlist + want to go back; 2/5/15 km/anywhere from the phone's last location if already permitted, else the map center); "Add from a link" (Wishlist tab; Google/Apple Maps links incl. short links resolved by redirect only; matched to the local catalog; adds to wishlist, or "want to go back" for visited places); Explorer (/explorer from the Timeline stats card; ssets/catalog/israel-areas.json from 
+pm run catalog:build: 185 cities, 1,392 neighborhoods; approximate nearest-neighborhood assignment).
+- Verified: typecheck, lint, iOS + web bundles, 308 data checks (.superpowers/checks, now with an AsyncStorage shim). **Not yet on the iPhone.**
+- Agents' open questions (defaults kept, ask the user when relevant): link to an unloaded area says "not found" (could fetch the area first); address-only Apple links can't be matched; villages/kibbutzim count under the nearest town; dish verdict uses each person's latest vote; Arabic city names don't match.
 ## Restaurant photos and redesign — November 4, 2026
 
 - M7 started (user picked features): contract `8e77a5b` (migration 6: review food/service/vibe, `dishes`, `dish_votes`; stub routes `/tonight`, `/add-from-link`, `/explorer`; strings; `expo-clipboard`). Agents in `..\mapeat-wt\`: `m7-ratings` (visits data + form + card + summary), `m7-dishes` (dishes data/UI, visit screen, place page section), `m7-tonight-link` (dice + `/tonight`, `/add-from-link`, map + wishlist entry), `m7-explorer` (areas asset from the build script, `/explorer`, stats-card link).

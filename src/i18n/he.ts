@@ -244,6 +244,8 @@ export const he: Translations = {
   'explorer.cities': 'ערים',
   'explorer.neighborhoods': 'שכונות',
   'explorer.places': '{count} מקומות',
+  'explorer.placesOne': 'מקום אחד',
+  'explorer.loadFailed': 'לא הצלחנו לטעון את ההתקדמות במפה.',
   'explorer.visits': '{count} ביקורים',
   'explorer.empty': 'בקרו במקום כדי להתחיל למלא את המפה.',
   'explorer.unknownArea': 'במקום אחר',
