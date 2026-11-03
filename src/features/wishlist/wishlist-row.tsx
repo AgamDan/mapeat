@@ -7,7 +7,9 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { ThemedText } from '@/components/themed-text';
 import { Radius, Spacing } from '@/constants/theme';
 import type { ListedPlace } from '@/data/journal';
+import type { Photo } from '@/data/photos';
 import { cuisineLabels, KIND_LABEL_KEYS, venueNames } from '@/features/catalog/labels';
+import { PhotoThumb } from '@/features/photos/photo-thumb';
 import { TagChips } from '@/features/tags/tag-chips';
 import { confirmRemoveMark } from '@/features/wishlist/journal-marks';
 import { useTheme } from '@/hooks/use-theme';
@@ -15,10 +17,13 @@ import { useLanguage, useT } from '@/i18n/i18n';
 import { formatVisitDate } from '@/lib/dates';
 
 type Props = {
-  place: ListedPlace;
+  /** `cover` comes from `useWishlist()`; rows without one show no thumbnail. */
+  place: ListedPlace & { cover?: Photo | null };
   /** Which list the row is in; decides what "remove" clears. */
   mark: 'wishlist' | 'wantReturn';
 };
+
+const COVER_SIZE = 56;
 
 /** One wishlist / "want to go back" place: tap to open its profile, ✕ to remove (after asking). */
 export function WishlistRow({ place, mark }: Props) {
@@ -56,20 +61,23 @@ export function WishlistRow({ place, mark }: Props) {
         accessibilityLabel={[name, details, lastVisit].filter(Boolean).join(', ')}
         onPress={() => router.push({ pathname: '/place/[id]', params: { id: place.placeId } })}
         style={({ pressed }) => [styles.main, pressed && styles.pressed]}>
-        <ThemedText type="defaultBold" numberOfLines={2}>
-          {name}
-        </ThemedText>
-        {details ? (
-          <ThemedText type="small" themeColor="textSecondary" numberOfLines={1}>
-            {details}
+        {place.cover ? <PhotoThumb photo={place.cover} size={COVER_SIZE} openable={false} /> : null}
+        <View style={styles.text}>
+          <ThemedText type="defaultBold" numberOfLines={2}>
+            {name}
           </ThemedText>
-        ) : null}
-        {lastVisit ? (
-          <ThemedText type="small" themeColor="textSecondary">
-            {lastVisit}
-          </ThemedText>
-        ) : null}
-        <TagChips tags={place.tags} />
+          {details ? (
+            <ThemedText type="small" themeColor="textSecondary" numberOfLines={1}>
+              {details}
+            </ThemedText>
+          ) : null}
+          {lastVisit ? (
+            <ThemedText type="small" themeColor="textSecondary">
+              {lastVisit}
+            </ThemedText>
+          ) : null}
+          <TagChips tags={place.tags} />
+        </View>
       </Pressable>
       <Pressable
         accessibilityRole="button"
@@ -95,6 +103,12 @@ const styles = StyleSheet.create({
     padding: Spacing.three,
   },
   main: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: Spacing.three,
+  },
+  text: {
     flex: 1,
     gap: Spacing.one,
   },

@@ -1,10 +1,23 @@
-import { useSQLiteContext } from 'expo-sqlite';
+import { useSQLiteContext, type SQLiteDatabase } from 'expo-sqlite';
 import { useCallback, useEffect, useState } from 'react';
 
 import { getWantReturnPlaces, getWishlist, type ListedPlace } from '@/data/journal';
 import { useJournalRevision } from '@/data/journal-events';
+import { getCoverPhotos, type Photo } from '@/data/photos';
 
-type Lists = { wantToTry: ListedPlace[]; wantToGoBack: ListedPlace[] };
+/** A listed place plus its private journal cover, if one was chosen. */
+export type WishlistPlace = ListedPlace & { cover: Photo | null };
+
+type Lists = { wantToTry: WishlistPlace[]; wantToGoBack: WishlistPlace[] };
+
+/** Both lists with their covers; a failed cover lookup only hides the thumbnails. */
+async function loadLists(db: SQLiteDatabase): Promise<Lists> {
+  const [wantToTry, wantToGoBack] = await Promise.all([getWishlist(db), getWantReturnPlaces(db)]);
+  const ids = [...new Set([...wantToTry, ...wantToGoBack].map((place) => place.placeId))];
+  const covers = await getCoverPhotos(db, ids).catch(() => new Map<string, Photo>());
+  const withCover = (place: ListedPlace): WishlistPlace => ({ ...place, cover: covers.get(place.placeId) ?? null });
+  return { wantToTry: wantToTry.map(withCover), wantToGoBack: wantToGoBack.map(withCover) };
+}
 
 /**
  * The shared wishlist ("want to try") and "want to go back" places, re-queried after every
@@ -19,10 +32,10 @@ export function useWishlist() {
 
   useEffect(() => {
     let cancelled = false;
-    Promise.all([getWishlist(db), getWantReturnPlaces(db)]).then(
-      ([wantToTry, wantToGoBack]) => {
+    loadLists(db).then(
+      (result) => {
         if (cancelled) return;
-        setLists({ wantToTry, wantToGoBack });
+        setLists(result);
         setError(false);
       },
       () => {

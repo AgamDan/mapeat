@@ -12,6 +12,8 @@ import { commonsFileName, fetchCommonsPhoto, type CommonsPhoto } from '@/feature
 import { addressLine, cuisineLabels, KIND_LABEL_KEYS, venueNames } from '@/features/catalog/labels';
 import type { Venue } from '@/features/catalog/types';
 import { usePeople } from '@/features/people/use-people';
+import { MenuPhotosSection } from '@/features/photos/menu-photos-section';
+import { useCoverPhoto } from '@/features/photos/use-place-photos';
 import { PlaceTagsRow } from '@/features/tags/place-tags-row';
 import { PlaceSummary } from '@/features/visits/place-summary';
 import { usePlaceJournal } from '@/features/visits/use-place-journal';
@@ -35,6 +37,7 @@ export default function PlaceScreen() {
   const [photo, setPhoto] = useState<CommonsPhoto | null>(null);
   const { journal, error: journalError, retry: retryJournal } = usePlaceJournal(id);
   const { people, ready: peopleReady } = usePeople();
+  const cover = useCoverPhoto(id);
 
   useEffect(() => {
     let cancelled = false;
@@ -147,7 +150,12 @@ export default function PlaceScreen() {
         {journal && peopleReady ? (
           journal.visits.length > 0 ? (
             <>
-              <PlaceSummary people={people} averages={journal.averages} visitCount={journal.visits.length} />
+              <PlaceSummary
+                people={people}
+                averages={journal.averages}
+                visitCount={journal.visits.length}
+                cover={cover}
+              />
               {journal.visits.map((visit) => (
                 <VisitCard key={visit.id} visit={visit} people={people} />
               ))}
@@ -169,6 +177,8 @@ export default function PlaceScreen() {
           <ActivityIndicator color={theme.accent} />
         )}
       </View>
+
+      <MenuPhotosSection placeId={venue.id} />
 
       <Pressable accessibilityRole="link" onPress={() => WebBrowser.openBrowserAsync(osmUrl)}>
         <ThemedText type="small" themeColor="textSecondary">
