@@ -20,6 +20,13 @@ The user asked that work be split across parallel sub-agents where safe. Continu
 
 Expected split value: M2 small (visit form vs. place visit history, after the data layer), M3 high (wishlist / tags / timeline), M4 medium (menu-photo vs. visit-photo UI after one storage layer), M5 low, M6 parallel read-only audits (RTL, error states).
 
+## Milestone 4 — in progress, November 3, 2026
+
+- M3 code review: two bugs fixed (stale "want to go back" after deleting all visits; old wishlist date after re-adding).
+- M4 decisions (in the design spec): photos belong to the visit (who added is kept), 10 per visit, 1600 px JPEG (~300 KB), camera + library, keep every menu photo.
+- M4 contract committed (`24dddef`, `a0c91f8`): migration 5 (`photos`, `cover_photo_id`), `src/data/photos.ts`, `src/features/photos/*` (file storage by file name under Documents/photos, picker + resize pipeline, `useAddPhotos`, `PhotoThumb`), visit deletion removes photos and files, orphan cleanup at startup. 27 photo data checks pass.
+- Agents running: `m4-visit-photos` (visit screen photos, visit card strip, `/photo/[id]` viewer) and `m4-menu-photos` (place-page Menu section, private cover on place summary and wishlist rows).
+
 ## Milestone 3 — November 3, 2026
 
 - Built M3 (wishlist, tags, timeline, map pins + filters) with three parallel agents on a committed contract (migration 4, `src/data/journal.ts`, `map-filter-store.ts`, strings, stub routes `(tabs)/wishlist`, `tags`, `map-filters`): `m3-timeline` (Timeline tab), `m3-wishlist` (Wishlist tab, tags screen, place-page toggles/tags), `m3-map` (pins, filter sheet, catalog hook).
