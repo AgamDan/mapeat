@@ -3,6 +3,7 @@ import type { SQLiteDatabase } from 'expo-sqlite';
 import { notifyJournalChanged } from '@/data/journal-events';
 import { enqueueWrite, writeTransaction } from '@/data/write-queue';
 import { isPersonId, type PersonId } from '@/data/people';
+import { deletePhotoFiles } from '@/features/photos/photo-files';
 import { isLocalDate, type LocalDate } from '@/lib/dates';
 import { newId } from '@/lib/ids';
 
@@ -243,20 +244,25 @@ export async function updateVisitDate(db: SQLiteDatabase, visitId: string, visit
   notifyJournalChanged();
 }
 
-/** Deletes a visit and its reviews. The journal place (and its wishlist state) stays. */
+/** Deletes a visit, its reviews and its photos. The journal place (and its wishlist state) stays. */
 export async function deleteVisit(db: SQLiteDatabase, visitId: string) {
+  let photoFiles: string[] = [];
   await writeTransaction(db, async (txn) => {
     const visit = await txn.getFirstAsync<{ place_id: string }>('SELECT place_id FROM visits WHERE id = ?', [visitId]);
+    photoFiles = await deleteVisitPhotoRows(txn, visitId);
     await txn.runAsync('DELETE FROM visit_reviews WHERE visit_id = ?', [visitId]);
     await txn.runAsync('DELETE FROM visits WHERE id = ?', [visitId]);
     if (visit) await clearWantReturnIfUnvisited(txn, visit.place_id);
   });
+  // Files go only after the rows are gone, so a failed transaction never loses photos.
+  deletePhotoFiles(photoFiles);
   notifyJournalChanged();
 }
 
-/** Deletes one review; if it was the visit's only review, the visit is deleted too. */
+/** Deletes one review; if it was the visit's only review, the visit (and its photos) is deleted too. */
 export async function deleteReview(db: SQLiteDatabase, reviewId: string): Promise<{ visitDeleted: boolean }> {
   let visitDeleted = false;
+  let photoFiles: string[] = [];
   await writeTransaction(db, async (txn) => {
     const review = await txn.getFirstAsync<{ visit_id: string; place_id: string }>(
       'SELECT r.visit_id, v.place_id FROM visit_reviews r JOIN visits v ON v.id = r.visit_id WHERE r.id = ?',
@@ -269,13 +275,33 @@ export async function deleteReview(db: SQLiteDatabase, reviewId: string): Promis
       [review.visit_id],
     );
     if ((left?.n ?? 0) === 0) {
+      photoFiles = await deleteVisitPhotoRows(txn, review.visit_id);
       await txn.runAsync('DELETE FROM visits WHERE id = ?', [review.visit_id]);
       await clearWantReturnIfUnvisited(txn, review.place_id);
       visitDeleted = true;
     }
   });
+  deletePhotoFiles(photoFiles);
   notifyJournalChanged();
   return { visitDeleted };
+}
+
+/**
+ * Removes the rows of all photos of a visit (clearing a cover that pointed at one) inside an
+ * ongoing write transaction and returns their file names for deletion after commit.
+ */
+async function deleteVisitPhotoRows(txn: SQLiteDatabase, visitId: string) {
+  const rows = await txn.getAllAsync<{ id: string; file_name: string }>(
+    'SELECT id, file_name FROM photos WHERE visit_id = ?',
+    [visitId],
+  );
+  if (rows.length === 0) return [];
+  await txn.runAsync('DELETE FROM photos WHERE visit_id = ?', [visitId]);
+  await txn.runAsync(
+    `UPDATE journal_places SET cover_photo_id = NULL WHERE cover_photo_id IN (${rows.map(() => '?').join(', ')})`,
+    rows.map((row) => row.id),
+  );
+  return rows.map((row) => row.file_name);
 }
 
 /** "Want to go back" only makes sense for a visited place; drop it once no visits remain. */

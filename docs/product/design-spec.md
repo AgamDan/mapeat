@@ -64,6 +64,9 @@ These answers resolve or narrow the open decisions listed later in this document
 | Own tags | Belong to a place (e.g. "date night", "brunch"), not to a visit. |
 | Timeline | Its own tab: all visits as postcards, newest first, grouped by month, with a person filter. |
 | Wishlist placement | Heart pins on the map plus a third tab, "Wishlist", listing wishlist places. |
+| Visit photos (M4) | Belong to the visit (either person adds; each photo remembers who added it). Up to 10 per visit. Camera and photo library. |
+| Photo size (M4) | Resized to 1600 px on the long side, JPEG ~300 KB, so ~3,000 photos fit Supabase's free 1 GB later. |
+| Menu photos over time (M4) | Keep every menu photo, newest first with its date (prices can be compared over time). |
 
 ## Success
 

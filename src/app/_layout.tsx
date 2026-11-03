@@ -115,6 +115,10 @@ function AppShell() {
               />
               <Stack.Screen name="tags" options={{ presentation: 'modal', title: t('tags.title') }} />
               <Stack.Screen
+                name="photo/[id]"
+                options={{ presentation: 'fullScreenModal', title: t('photos.viewerTitle') }}
+              />
+              <Stack.Screen
                 name="map-filters"
                 options={{
                   presentation: 'formSheet',

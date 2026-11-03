@@ -1,9 +1,10 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
 
-import { writeTransaction } from '@/data/write-queue';
-
 import { ensurePeople } from '@/data/people';
+import { getAllPhotoFileNames } from '@/data/photos';
 import { seedStarterCatalog } from '@/data/starter-catalog';
+import { writeTransaction } from '@/data/write-queue';
+import { deleteOrphanPhotoFiles } from '@/features/photos/photo-files';
 
 export const DATABASE_NAME = 'mapeat.db';
 
@@ -99,6 +100,26 @@ const MIGRATIONS: readonly string[] = [
   );
   CREATE INDEX place_tags_tag ON place_tags (tag_id);
   `,
+  `
+  CREATE TABLE photos (
+    id TEXT PRIMARY KEY NOT NULL,
+    kind TEXT NOT NULL CHECK (kind IN ('visit', 'menu')),
+    place_id TEXT NOT NULL REFERENCES journal_places (place_id),
+    visit_id TEXT REFERENCES visits (id),
+    added_by TEXT NOT NULL REFERENCES people (id),
+    file_name TEXT NOT NULL,
+    width INTEGER NOT NULL,
+    height INTEGER NOT NULL,
+    taken_at INTEGER,
+    submission_id TEXT NOT NULL UNIQUE,
+    upload_state TEXT NOT NULL DEFAULT 'local',
+    created_at INTEGER NOT NULL,
+    CHECK ((kind = 'visit') = (visit_id IS NOT NULL))
+  );
+  CREATE INDEX photos_visit ON photos (visit_id, created_at);
+  CREATE INDEX photos_place_kind ON photos (place_id, kind, created_at DESC);
+  ALTER TABLE journal_places ADD COLUMN cover_photo_id TEXT;
+  `,
 ];
 
 /** Opens the app database: runs migrations, then loads the built-in catalog if it changed. */
@@ -110,6 +131,12 @@ export async function initDatabase(db: SQLiteDatabase) {
   } catch (error) {
     // The app still works without the built-in catalog (live Overpass + cache), so don't block launch.
     console.warn('Built-in catalog could not be loaded', error);
+  }
+  try {
+    // Files left by an add that was interrupted before its database row was saved.
+    deleteOrphanPhotoFiles(await getAllPhotoFileNames(db));
+  } catch (error) {
+    console.warn('Photo cleanup skipped', error);
   }
 }
 
