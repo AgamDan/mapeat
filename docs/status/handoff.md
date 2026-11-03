@@ -22,6 +22,8 @@ Expected split value: M2 small (visit form vs. place visit history, after the da
 
 ## Restaurant photos and redesign — November 4, 2026
 
+- M7 started (user picked features): contract `8e77a5b` (migration 6: review food/service/vibe, `dishes`, `dish_votes`; stub routes `/tonight`, `/add-from-link`, `/explorer`; strings; `expo-clipboard`). Agents in `..\mapeat-wt\`: `m7-ratings` (visits data + form + card + summary), `m7-dishes` (dishes data/UI, visit screen, place page section), `m7-tonight-link` (dice + `/tonight`, `/add-from-link`, map + wishlist entry), `m7-explorer` (areas asset from the build script, `/explorer`, stats-card link).
+
 - Place photos: only ~1 in 3,600 OSM venues links a photo, and Google Places needs billing (excluded). User chose: a "See photos on Google Maps" button (free URL scheme), and an "Our photo" header on the place page when there's no public photo (cover, else newest visit photo, else newest menu photo; `getHeaderPhoto` / `useHeaderPhoto`). Pushed as `a54faa2`.
 - Redesign: user disliked Frank Ruhl Libre. Research (Apple text sizes, Hebrew Google Fonts, WCAG-checked palettes) → three mockups in `.superpowers/brainstorm/mapeat-type-color-20261104/` (gitignored). User chose Rubik (titles, numbers) + Heebo (text), Apple sizes with Hebrew +1 pt, light colors "fresh" (C), dark colors "calm" (B). Built in `theme.ts`, `themed-text.tsx`, `_layout.tsx`; `Fonts.black` became `Fonts.displayHeavy`. Splash background colors updated; the app icon still uses the old palette.
 - Verified: typecheck, lint, iOS bundle, web preview in Hebrew dark and English light. **Not yet verified on the iPhone**: native tab label fonts, long Hebrew strings at the larger sizes.

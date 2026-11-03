@@ -85,6 +85,7 @@ Progress: **M0 built November 2, 2026** — typecheck, lint, iOS bundle, and the
 | M4 | **Photos** — `expo-image-picker` (camera/library) for visit photos (add anytime later) and place menu photos (also before any visit); private cover photo choice; delete with confirmation. | Photos survive restart; menu photos show on the place before/after visits; profile photos and private photos never mix. |
 | M5 | **Backend + two phones** — Supabase Free (schema mirroring SQLite, RLS member-only), Sign in with Apple, invite link + 6-digit code, one-time upload of local data keeping review authors, photo storage (private bucket). | Both phones see the same journal; a third account sees nothing; local data migrated without duplicates. |
 | M6 | **Private beta polish** — search within cached catalog, weak-network behavior, delete flows, date handling abroad, RTL/LTR review on both phones. | First real outing recorded end to end by both of you. |
+| M7 | **Extras** (chosen Nov 4) — optional Food/Service/Vibe ratings (1–10, per person); shared dish list per visit with each person's 👍/👎 and a place-level "order again / skip" summary; "Where tonight?" dice (wishlist + want to go back, distance chips); add a place from a pasted Google/Apple Maps link; Explorer progress (cities + approximate OSM neighborhoods). | Each feature usable on the iPhone in Hebrew and English; ratings never combined across the two people. |
 
 ## Open questions to resolve when their milestone starts
 
