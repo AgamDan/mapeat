@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
@@ -8,6 +9,7 @@ const ROWS = [
   [1, 2, 3, 4, 5],
   [6, 7, 8, 9, 10],
 ] as const;
+const ONE_ROW = [[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]] as const;
 
 type RatingPickerProps = {
   label: string;
@@ -19,38 +21,57 @@ type RatingPickerProps = {
   disabled?: boolean;
   /** Highlights the outline, e.g. after trying to save without a rating. */
   invalid?: boolean;
+  /** `compact`: one row of ten smaller buttons, for secondary ratings. */
+  size?: 'regular' | 'compact';
+  /** Shown at the end of the label row (e.g. a "Clear" button). */
+  accessory?: ReactNode;
 };
 
-/** A 1–10 whole-number rating as two rows of five large buttons (radio group). */
-export function RatingPicker({ label, value, onChange, color, disabled = false, invalid = false }: RatingPickerProps) {
+/** A 1–10 whole-number rating as two rows of five large buttons, or one compact row (radio group). */
+export function RatingPicker({
+  label,
+  value,
+  onChange,
+  color,
+  disabled = false,
+  invalid = false,
+  size = 'regular',
+  accessory,
+}: RatingPickerProps) {
   const theme = useTheme();
   const fill = color ?? theme.accent;
+  const compact = size === 'compact';
 
   return (
-    <View style={styles.group} accessibilityRole="radiogroup" accessibilityLabel={label}>
-      <ThemedText type="smallBold" themeColor="textSecondary">
-        {label}
-      </ThemedText>
-      {ROWS.map((row) => (
-        <View key={row[0]} style={styles.row}>
+    <View style={compact ? styles.compactGroup : styles.group} accessibilityRole="radiogroup" accessibilityLabel={label}>
+      <View style={styles.labelRow}>
+        <ThemedText type="smallBold" themeColor="textSecondary" style={styles.label}>
+          {label}
+        </ThemedText>
+        {accessory}
+      </View>
+      {(compact ? ONE_ROW : ROWS).map((row) => (
+        <View key={row[0]} style={compact ? styles.compactRow : styles.row}>
           {row.map((rating) => {
             const selected = rating === value;
             return (
               <Pressable
                 key={rating}
                 accessibilityRole="radio"
-                accessibilityLabel={String(rating)}
+                accessibilityLabel={compact ? `${label} ${rating}` : String(rating)}
                 accessibilityState={{ selected, disabled }}
                 disabled={disabled}
                 onPress={() => onChange(rating)}
                 style={({ pressed }) => [
                   styles.cell,
+                  compact && styles.compactCell,
                   selected
                     ? { backgroundColor: fill, borderColor: fill }
                     : { backgroundColor: theme.card, borderColor: invalid ? theme.accent : theme.line },
                   pressed && styles.pressed,
                 ]}>
-                <ThemedText style={[styles.number, { color: selected ? theme.onAccent : theme.text }]}>
+                <ThemedText
+                  style={[compact ? styles.compactNumber : styles.number, { color: selected ? theme.onAccent : theme.text }]}>
                   {rating}
                 </ThemedText>
               </Pressable>
@@ -66,9 +87,25 @@ const styles = StyleSheet.create({
   group: {
     gap: Spacing.two,
   },
+  compactGroup: {
+    gap: Spacing.one,
+  },
+  labelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: Spacing.two,
+  },
+  label: {
+    flexShrink: 1,
+  },
   row: {
     flexDirection: 'row',
     gap: Spacing.two,
+  },
+  compactRow: {
+    flexDirection: 'row',
+    gap: Spacing.one,
   },
   cell: {
     flex: 1,
@@ -78,10 +115,19 @@ const styles = StyleSheet.create({
     borderRadius: Radius.small,
     borderWidth: 1,
   },
+  compactCell: {
+    minHeight: 40,
+  },
   number: {
     fontFamily: Fonts.display,
     fontSize: 20,
     lineHeight: 26,
+    textAlign: 'center',
+  },
+  compactNumber: {
+    fontFamily: Fonts.display,
+    fontSize: 15,
+    lineHeight: 20,
     textAlign: 'center',
   },
   pressed: {

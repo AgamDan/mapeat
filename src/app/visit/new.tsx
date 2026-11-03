@@ -7,7 +7,7 @@ import { ActivityIndicator, Alert, StyleSheet, View } from 'react-native';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
 import { getPlace } from '@/data/places';
-import { saveNewVisit } from '@/data/visits';
+import { emptySubRatings, saveNewVisit } from '@/data/visits';
 import { venueNames } from '@/features/catalog/labels';
 import type { Venue } from '@/features/catalog/types';
 import { usePeople } from '@/features/people/use-people';
@@ -36,6 +36,7 @@ export default function NewVisitScreen() {
     visitDate: todayLocalDate(),
     writer,
     rating: null,
+    sub: emptySubRatings(),
     notes: '',
   }));
   const { draft, restored, dirty, update, clear } = useVisitDraft(newVisitDraftKey(placeId), initial);
@@ -88,6 +89,7 @@ export default function NewVisitScreen() {
           visitDate: valid.visitDate,
           authorId: valid.writer,
           rating: valid.rating,
+          sub: valid.sub,
           notes: valid.notes,
         })
       ).visitId;

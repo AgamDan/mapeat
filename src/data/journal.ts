@@ -264,6 +264,9 @@ async function getReviewsForVisits(db: SQLiteDatabase, visitIds: readonly string
     visit_id: string;
     author_id: string;
     rating: number;
+    food: number | null;
+    service: number | null;
+    vibe: number | null;
     notes: string | null;
     last_editor_id: string;
     created_at: number;
@@ -277,6 +280,7 @@ async function getReviewsForVisits(db: SQLiteDatabase, visitIds: readonly string
       visitId: row.visit_id,
       authorId: row.author_id,
       rating: row.rating,
+      sub: { food: row.food ?? null, service: row.service ?? null, vibe: row.vibe ?? null },
       notes: row.notes,
       lastEditorId: isPersonId(row.last_editor_id) ? row.last_editor_id : row.author_id,
       createdAt: row.created_at,

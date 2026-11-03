@@ -7,7 +7,7 @@ import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
 import { isPersonId } from '@/data/people';
 import { getPlace } from '@/data/places';
-import { getVisit, ReviewConflictError, saveReview, VisitNotFoundError, type Visit } from '@/data/visits';
+import { emptySubRatings, getVisit, ReviewConflictError, saveReview, VisitNotFoundError, type Visit } from '@/data/visits';
 import { venueNames } from '@/features/catalog/labels';
 import type { Venue } from '@/features/catalog/types';
 import { usePeople } from '@/features/people/use-people';
@@ -64,6 +64,7 @@ export default function ReviewScreen() {
         visitDate: visit.visitDate,
         writer: startWriter,
         rating: review?.rating ?? null,
+        sub: review ? { ...review.sub } : emptySubRatings(),
         notes: review?.notes ?? '',
         baseUpdatedAt: review?.updatedAt ?? null,
       }
@@ -104,6 +105,7 @@ export default function ReviewScreen() {
         authorId: author,
         editorId: valid.writer,
         rating: valid.rating,
+        sub: valid.sub,
         notes: valid.notes,
         expectedUpdatedAt: valid.baseUpdatedAt ?? null,
       });
