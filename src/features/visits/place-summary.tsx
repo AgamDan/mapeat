@@ -3,6 +3,8 @@ import { StyleSheet, View } from 'react-native';
 import { ThemedText } from '@/components/themed-text';
 import { Fonts, Radius, Spacing } from '@/constants/theme';
 import type { Person, PersonId } from '@/data/people';
+import type { Photo } from '@/data/photos';
+import { PhotoThumb } from '@/features/photos/photo-thumb';
 import { useTheme } from '@/hooks/use-theme';
 import { useT } from '@/i18n/i18n';
 
@@ -15,15 +17,30 @@ type PlaceSummaryProps = {
   people: Person[];
   averages: Record<PersonId, number | null>;
   visitCount: number;
+  /** The couple's private journal cover, if one was chosen (never the public profile photo). */
+  cover?: Photo | null;
 };
 
+const COVER_SIZE = 56;
+
 /** Each person's own average for a place, side by side in their ink — never a combined score. */
-export function PlaceSummary({ people, averages, visitCount }: PlaceSummaryProps) {
+export function PlaceSummary({ people, averages, visitCount, cover = null }: PlaceSummaryProps) {
   const theme = useTheme();
   const t = useT();
 
   return (
     <View style={[styles.box, { borderColor: theme.line, backgroundColor: theme.backgroundRaised }]}>
+      {cover ? (
+        <View style={styles.cover}>
+          <PhotoThumb photo={cover} size={COVER_SIZE} />
+          <View style={styles.coverText}>
+            <ThemedText type="smallBold">{t('photos.isCover')}</ThemedText>
+            <ThemedText type="small" themeColor="textSecondary">
+              {t('photos.coverHint')}
+            </ThemedText>
+          </View>
+        </View>
+      ) : null}
       <View style={styles.header}>
         <ThemedText type="smallBold" themeColor="textSecondary">
           {t('place.average')}
@@ -75,6 +92,15 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'baseline',
     gap: Spacing.two,
+  },
+  cover: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.three,
+  },
+  coverText: {
+    flex: 1,
+    gap: Spacing.half,
   },
   row: {
     flexDirection: 'row',
