@@ -11,6 +11,7 @@ import { getPlace } from '@/data/places';
 import { commonsFileName, fetchCommonsPhoto, type CommonsPhoto } from '@/features/catalog/commons';
 import { addressLine, cuisineLabels, KIND_LABEL_KEYS, venueNames } from '@/features/catalog/labels';
 import type { Venue } from '@/features/catalog/types';
+import { PlaceDishesSection } from '@/features/dishes/place-dishes-section';
 import { usePeople } from '@/features/people/use-people';
 import { MenuPhotosSection } from '@/features/photos/menu-photos-section';
 import { PlaceAddPhotosButton } from '@/features/photos/place-add-photos-button';
@@ -227,6 +228,8 @@ export default function PlaceScreen() {
           <ActivityIndicator color={theme.accent} />
         )}
       </View>
+
+      <PlaceDishesSection placeId={venue.id} />
 
       <MenuPhotosSection placeId={venue.id} />
 

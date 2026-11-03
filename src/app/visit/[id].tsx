@@ -12,6 +12,7 @@ import type { Person } from '@/data/people';
 import { getPlace } from '@/data/places';
 import { deleteReview, deleteVisit, getVisit, updateVisitDate, type Visit, type VisitReview } from '@/data/visits';
 import { KIND_LABEL_KEYS, venueNames } from '@/features/catalog/labels';
+import { VisitDishesSection } from '@/features/dishes/visit-dishes-section';
 import type { Venue } from '@/features/catalog/types';
 import { usePeople } from '@/features/people/use-people';
 import { VisitPhotosSection } from '@/features/photos/visit-photos-section';
@@ -169,6 +170,8 @@ export default function VisitScreen() {
       {shareCard}
       <ScrollView
         style={[styles.screen, { backgroundColor: theme.background }]}
+        keyboardShouldPersistTaps="handled"
+        automaticallyAdjustKeyboardInsets
         contentContainerStyle={styles.content}>
         <ThemedText type="title">{placeName}</ThemedText>
 
@@ -199,6 +202,8 @@ export default function VisitScreen() {
         </Pressable>
 
         <VisitPhotosSection placeId={visit.placeId} visitId={visit.id} />
+
+        <VisitDishesSection visitId={visit.id} />
 
         <View style={[styles.panel, { borderColor: theme.line, backgroundColor: theme.backgroundRaised }]}>
           <DateField label={t('visit.changeDate')} value={visit.visitDate} onChange={changeDate} />
