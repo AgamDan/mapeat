@@ -166,6 +166,7 @@ export function TagEditor({ placeId }: { placeId?: string }) {
 
       {loadFailed ? (
         <View style={styles.center}>
+          <ThemedText themeColor="textSecondary">{t('tags.loadFailed')}</ThemedText>
           <Pressable
             accessibilityRole="button"
             onPress={() => {

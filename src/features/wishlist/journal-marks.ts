@@ -41,14 +41,16 @@ export function confirmRemoveMark(
   return new Promise<boolean>((resolve) => {
     const title = mark === 'wishlist' ? t('wishlist.remove') : t('wantReturn.remove');
     const message =
-      mark === 'wishlist' ? t('wishlist.removeConfirm', { name: placeName }) : placeName;
+      mark === 'wishlist'
+        ? t('wishlist.removeConfirm', { name: placeName })
+        : t('wantReturn.removeConfirm', { name: placeName });
     Alert.alert(
       title,
       message,
       [
         { text: t('visit.cancel'), style: 'cancel', onPress: () => resolve(false) },
         {
-          text: title,
+          text: t('common.remove'),
           style: 'destructive',
           onPress: () => {
             updateMark(db, t, mark, placeId, false).then(resolve);
