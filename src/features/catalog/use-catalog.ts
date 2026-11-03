@@ -86,7 +86,9 @@ export function useCatalog(filter: MapFilter, journalRevision: number) {
       const zoomedOut = isZoomedOut(region);
       // Zoomed out, only our own places are drawn (anywhere); catalog dots need zooming in.
       const load = (next: MapFilter) =>
-        zoomedOut ? getAllJournalMapPlaces(db, next, MAX_MARKERS) : placesInView(bounds, next);
+        zoomedOut
+          ? getAllJournalMapPlaces(db, next, MAX_MARKERS, { lat: region.latitude, lon: region.longitude })
+          : placesInView(bounds, next);
 
       const places = await load(current);
       const withoutCuisine = current.cuisine ? await load({ ...current, cuisine: null }) : places;

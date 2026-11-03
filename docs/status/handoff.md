@@ -20,6 +20,13 @@ The user asked that work be split across parallel sub-agents where safe. Continu
 
 Expected split value: M2 small (visit form vs. place visit history, after the data layer), M3 high (wishlist / tags / timeline), M4 medium (menu-photo vs. visit-photo UI after one storage layer), M5 low, M6 parallel read-only audits (RTL, error states).
 
+## Milestone 3 — November 3, 2026
+
+- Built M3 (wishlist, tags, timeline, map pins + filters) with three parallel agents on a committed contract (migration 4, `src/data/journal.ts`, `map-filter-store.ts`, strings, stub routes `(tabs)/wishlist`, `tags`, `map-filters`): `m3-timeline` (Timeline tab), `m3-wishlist` (Wishlist tab, tags screen, place-page toggles/tags), `m3-map` (pins, filter sheet, catalog hook).
+- M2 code review: one bug fixed — a save finishing after the form was swiped away closed the screen underneath (`useCloseVisitForm`).
+- Verified: typecheck, lint, iOS + web bundles, 59 data-layer checks, Hebrew web click-through. **Not yet verified on the iPhone** (map pins, filter sheet, tab bar with 3 tabs).
+- Next: M4 (visit photos + menu photos), after the user's phone check.
+
 ## Milestone 2 — November 3, 2026
 
 - Built M2 (first visit) in the parallel working mode: lead committed the contract (migration 3, `src/data/visits.ts`, people Artur/Agam, "Writing as" setting, date helpers, strings, stub routes, shared `DateField`); agent `m2-form` built the visit/review forms + drafts, agent `m2-history` built place history, visit card, visit detail. Lead added "Our names" in Settings and merged.

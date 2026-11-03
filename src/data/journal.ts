@@ -309,12 +309,18 @@ export type MapFilter = {
 export const DEFAULT_MAP_FILTER: MapFilter = { show: 'all', kinds: [], cuisine: null, tagIds: [] };
 
 /**
- * Places inside `bounds` that match `filter`, nearest to the center first, with their journal
- * status. Visited wins over wishlist when both are set.
+ * Places inside `bounds` that match `filter`, nearest to `near` (default: the bounds' center)
+ * first, with their journal status. Visited wins over wishlist when both are set.
  */
-export async function getMapPlaces(db: SQLiteDatabase, bounds: Bounds, filter: MapFilter, limit: number) {
-  const centerLat = (bounds.south + bounds.north) / 2;
-  const centerLon = (bounds.west + bounds.east) / 2;
+export async function getMapPlaces(
+  db: SQLiteDatabase,
+  bounds: Bounds,
+  filter: MapFilter,
+  limit: number,
+  near?: { lat: number; lon: number },
+) {
+  const centerLat = near?.lat ?? (bounds.south + bounds.north) / 2;
+  const centerLon = near?.lon ?? (bounds.west + bounds.east) / 2;
   const where = ['p.lat BETWEEN ? AND ?', 'p.lon BETWEEN ? AND ?'];
   const params: (string | number)[] = [bounds.south, bounds.north, bounds.west, bounds.east];
 
@@ -359,8 +365,13 @@ export async function getMapPlaces(db: SQLiteDatabase, bounds: Bounds, filter: M
   return places;
 }
 
-/** Every journal place (visited, wishlist, or "want to go back") with coordinates, for zoomed-out maps. */
-export async function getAllJournalMapPlaces(db: SQLiteDatabase, filter: MapFilter, limit: number) {
+/** Every journal place (visited, wishlist, or "want to go back") anywhere, nearest to `near` first. */
+export async function getAllJournalMapPlaces(
+  db: SQLiteDatabase,
+  filter: MapFilter,
+  limit: number,
+  near?: { lat: number; lon: number },
+) {
   const world: Bounds = { south: -90, north: 90, west: -180, east: 180 };
-  return getMapPlaces(db, world, { ...filter, show: filter.show === 'all' ? 'journal' : filter.show }, limit);
+  return getMapPlaces(db, world, { ...filter, show: filter.show === 'all' ? 'journal' : filter.show }, limit, near);
 }
