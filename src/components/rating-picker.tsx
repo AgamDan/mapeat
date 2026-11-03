@@ -9,7 +9,6 @@ const ROWS = [
   [1, 2, 3, 4, 5],
   [6, 7, 8, 9, 10],
 ] as const;
-const ONE_ROW = [[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]] as const;
 
 type RatingPickerProps = {
   label: string;
@@ -21,13 +20,13 @@ type RatingPickerProps = {
   disabled?: boolean;
   /** Highlights the outline, e.g. after trying to save without a rating. */
   invalid?: boolean;
-  /** `compact`: one row of ten smaller buttons, for secondary ratings. */
+  /** `compact`: smaller numbers and tighter spacing (still 44 pt tall), for secondary ratings. */
   size?: 'regular' | 'compact';
   /** Shown at the end of the label row (e.g. a "Clear" button). */
   accessory?: ReactNode;
 };
 
-/** A 1–10 whole-number rating as two rows of five large buttons, or one compact row (radio group). */
+/** A 1–10 whole-number rating as two rows of five buttons (radio group); compact is a smaller variant. */
 export function RatingPicker({
   label,
   value,
@@ -50,7 +49,7 @@ export function RatingPicker({
         </ThemedText>
         {accessory}
       </View>
-      {(compact ? ONE_ROW : ROWS).map((row) => (
+      {ROWS.map((row) => (
         <View key={row[0]} style={compact ? styles.compactRow : styles.row}>
           {row.map((rating) => {
             const selected = rating === value;
@@ -116,7 +115,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   compactCell: {
-    minHeight: 40,
+    minHeight: 44,
   },
   number: {
     fontFamily: Fonts.display,

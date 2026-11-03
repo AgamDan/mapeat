@@ -206,6 +206,7 @@ export default function PlaceScreen() {
                 averages={journal.averages}
                 visitCount={journal.visits.length}
                 cover={cover}
+                subAverages={journal.subAverages}
               />
               {journal.visits.map((visit) => (
                 <VisitCard key={visit.id} visit={visit} people={people} photos={photosFor(visit.id)} />
