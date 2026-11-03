@@ -154,6 +154,8 @@ export const en = {
   'photos.webUnavailable': 'Photos are available on iPhone.',
   'photos.needVisit': 'Photos belong to a visit. Add your visit first, then add photos.',
   'photos.whichVisit': 'Add photos to which visit?',
+  'photos.removePending': 'Remove photo',
+  'photos.savedWithVisit': 'Selfies, dishes, the view: saved together with the visit.',
   'search.title': 'Search',
   'search.open': 'Search places',
   'search.placeholder': 'Restaurant, café, bar…',

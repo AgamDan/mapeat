@@ -193,18 +193,17 @@ export async function deletePhoto(db: SQLiteDatabase, id: string) {
 }
 
 /**
- * Chooses one of the place's own visit photos as its private journal cover (`null` clears it).
- * Covers are never shown as public profile photos.
+ * Chooses one of the place's own photos (visit or menu) as its private main photo / journal cover
+ * (`null` clears it). Covers are never shown as public profile photos.
  */
 export async function setCoverPhoto(db: SQLiteDatabase, placeId: string, photoId: string | null) {
   await writeTransaction(db, async (txn) => {
     if (photoId) {
-      const photo = await txn.getFirstAsync<{ place_id: string; kind: string }>(
-        'SELECT place_id, kind FROM photos WHERE id = ?',
-        [photoId],
-      );
-      if (!photo || photo.place_id !== placeId || photo.kind !== 'visit') {
-        throw new JournalValidationError('A cover must be one of this place’s visit photos');
+      const photo = await txn.getFirstAsync<{ place_id: string }>('SELECT place_id FROM photos WHERE id = ?', [
+        photoId,
+      ]);
+      if (!photo || photo.place_id !== placeId) {
+        throw new JournalValidationError('A cover must be one of this place’s photos');
       }
     }
     // updated_at is left alone: it orders the "want to go back" list, which a cover must not reorder.

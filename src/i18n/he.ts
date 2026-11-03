@@ -156,6 +156,8 @@ export const he: Translations = {
   'photos.webUnavailable': 'התמונות זמינות באייפון.',
   'photos.needVisit': 'תמונות שייכות לביקור. הוסיפו קודם את הביקור, ואז את התמונות.',
   'photos.whichVisit': 'לאיזה ביקור להוסיף את התמונות?',
+  'photos.removePending': 'הסרת התמונה',
+  'photos.savedWithVisit': 'סלפי, מנות, הנוף: נשמרות יחד עם הביקור.',
   'search.title': 'חיפוש',
   'search.open': 'חיפוש מקומות',
   'search.placeholder': 'מסעדה, בית קפה, בר…',

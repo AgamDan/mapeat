@@ -36,6 +36,8 @@ type VisitFormProps = {
    * closes) or the key of the message to show; the draft is kept either way until success.
    */
   onSubmit: (draft: ValidVisitDraft) => Promise<TranslationKey | null>;
+  /** Extra section shown under the card (e.g. photos for a new visit); gets whether saving is running. */
+  extra?: (saving: boolean) => ReactNode;
 };
 
 /**
@@ -63,6 +65,7 @@ export function VisitForm({
   canDiscard,
   onDiscard,
   onSubmit,
+  extra,
 }: VisitFormProps) {
   const theme = useTheme();
   const t = useT();
@@ -185,6 +188,8 @@ export function VisitForm({
           />
         </View>
       </Postcard>
+
+      {extra?.(saving)}
 
       {error ? (
         <ThemedText

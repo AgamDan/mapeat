@@ -62,7 +62,7 @@ function PinBody({
 }) {
   const theme = useTheme();
 
-  if (place.status === 'visited' && photoFile) {
+  if (photoFile) {
     const size = selected ? 52 : 42;
     return (
       <View style={[styles.photoHitArea, { width: size + 12, height: size + 12 }]} collapsable={false}>
@@ -147,7 +147,7 @@ type PlaceMarkerProps = {
   place: MapPlace;
   selected: boolean;
   label: string;
-  /** Our photo for this place (only visited places, only when zoomed in close). */
+  /** Our photo for this place (only when zoomed in close). */
   photoFile?: string;
   onSelect: (id: string) => void;
 };
@@ -162,6 +162,8 @@ function zIndexOf(place: MapPlace, selected: boolean, hasPhoto: boolean) {
 
 /** If a photo never reports loading, stop redrawing the marker after this long anyway. */
 const PHOTO_READY_TIMEOUT_MS = 3_000;
+/** After the image loads, keep redrawing briefly so the native marker snapshot includes it. */
+const PHOTO_SETTLE_MS = 400;
 
 /**
  * One place on the map. Memoized on what it draws, so re-querying places (a new array of new
@@ -172,13 +174,14 @@ const PHOTO_READY_TIMEOUT_MS = 3_000;
 export const PlaceMarker = memo(
   function PlaceMarker({ place, selected, label, photoFile, onSelect }: PlaceMarkerProps) {
     const [photoReady, setPhotoReady] = useState(false);
-    const showsPhoto = place.status === 'visited' && photoFile != null;
+    const [photoLoaded, setPhotoLoaded] = useState(false);
+    const showsPhoto = photoFile != null;
 
     useEffect(() => {
       if (!showsPhoto) return;
-      const timer = setTimeout(() => setPhotoReady(true), PHOTO_READY_TIMEOUT_MS);
+      const timer = setTimeout(() => setPhotoReady(true), photoLoaded ? PHOTO_SETTLE_MS : PHOTO_READY_TIMEOUT_MS);
       return () => clearTimeout(timer);
-    }, [showsPhoto]);
+    }, [showsPhoto, photoLoaded]);
 
     return (
       <Marker
@@ -194,7 +197,7 @@ export const PlaceMarker = memo(
           place={place}
           selected={selected}
           photoFile={photoFile}
-          onPhotoReady={() => setPhotoReady(true)}
+          onPhotoReady={() => setPhotoLoaded(true)}
         />
       </Marker>
     );

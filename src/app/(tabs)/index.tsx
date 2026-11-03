@@ -37,8 +37,8 @@ const INITIAL_REGION = { latitude: 32.0809, longitude: 34.7806, latitudeDelta: 0
 const NOTE_DURATION_MS = 4_000;
 /** Street-level zoom when flying to a single place (e.g. from search). */
 const PLACE_DELTA = 0.006;
-/** Zoomed in at least this close (map height in degrees, ~1.7 km), visited places show our photo. */
-const PHOTO_PIN_DELTA = 0.015;
+/** Zoomed in at least this close (map height in degrees, ~2.8 km), visited places show our photo. */
+const PHOTO_PIN_DELTA = 0.025;
 
 export default function MapScreen() {
   const t = useT();

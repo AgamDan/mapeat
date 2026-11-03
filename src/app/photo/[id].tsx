@@ -285,7 +285,6 @@ function PhotoDetails({
   onDelete,
 }: PhotoDetailsProps) {
   const t = useT();
-  const canBeCover = photo.kind === 'visit';
 
   return (
     <View
@@ -311,7 +310,7 @@ function PhotoDetails({
         ) : null}
       </View>
 
-      {canBeCover && isCover ? (
+      {isCover ? (
         <View style={[styles.coverNote, { backgroundColor: palette.chip }]}>
           <ThemedText type="smallBold" style={{ color: palette.sea }}>
             {t('photos.isCover')}
@@ -323,30 +322,28 @@ function PhotoDetails({
       ) : null}
 
       <View style={styles.actions}>
-        {canBeCover ? (
-          <Pressable
-            accessibilityRole="button"
-            accessibilityState={{ disabled: busy, selected: isCover }}
-            disabled={busy}
-            onPress={onToggleCover}
-            style={({ pressed }) => [
-              styles.button,
-              styles.coverButton,
-              isCover
-                ? { borderColor: palette.line }
-                : { borderColor: palette.accent, backgroundColor: palette.accent },
-              (pressed || busy) && styles.pressed,
-            ]}>
-            <SymbolView
-              name={{ ios: isCover ? 'star.slash' : 'star.fill', android: 'star', web: 'star' }}
-              size={16}
-              tintColor={isCover ? palette.text : palette.onAccent}
-            />
-            <ThemedText type="smallBold" style={{ color: isCover ? palette.text : palette.onAccent }}>
-              {isCover ? t('photos.removeCover') : t('photos.setCover')}
-            </ThemedText>
-          </Pressable>
-        ) : null}
+        <Pressable
+          accessibilityRole="button"
+          accessibilityState={{ disabled: busy, selected: isCover }}
+          disabled={busy}
+          onPress={onToggleCover}
+          style={({ pressed }) => [
+            styles.button,
+            styles.coverButton,
+            isCover
+              ? { borderColor: palette.line }
+              : { borderColor: palette.accent, backgroundColor: palette.accent },
+            (pressed || busy) && styles.pressed,
+          ]}>
+          <SymbolView
+            name={{ ios: isCover ? 'star.slash' : 'star.fill', android: 'star', web: 'star' }}
+            size={16}
+            tintColor={isCover ? palette.text : palette.onAccent}
+          />
+          <ThemedText type="smallBold" style={{ color: isCover ? palette.text : palette.onAccent }}>
+            {isCover ? t('photos.removeCover') : t('photos.setCover')}
+          </ThemedText>
+        </Pressable>
         <Pressable
           accessibilityRole="button"
           accessibilityState={{ disabled: busy }}

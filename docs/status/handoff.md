@@ -30,6 +30,7 @@ Expected split value: M2 small (visit form vs. place visit history, after the da
 - Search vs. filters (user choice): a place opened from search stays drawn even if the filters would hide it (`getMapPlace` + a filter-match check in the map screen), with a "Filters are on · Clear" note next to the filter button. Picking another place on the map drops it.
 - Map area (user: too small, odd when panning): zoom limit ~11 km, 400 pins spread evenly on a fixed grid (`src/features/catalog/spread.ts`), drawn 35% beyond the screen edges.
 - Photos (user choices): "Add photos" on the place page (photos still belong to a visit: one visit → it; several → pick by date; none → offer "Add visit"). Zoomed in close (map ≤ ~1.7 km tall), visited places with photos show a round photo pin: main photo, else newest visit photo, never menu photos (`getMapPhotoFiles`, `useMapPhotos`). "Cover" is now called "main photo" in the UI; the viewer's "Set as main photo" is a filled star button. Menu photos unchanged and separate.
+- Follow-up (user: photo pins don't work, can only add menu photos, can't pick the main photo): the new-visit form has "Our photos" (picked photos are attached right after the visit saves; failures alert but never undo the visit). Any photo, including a menu photo, can be the main photo. Photo pins from ~2.8 km map height, for any place with a photo to show; the marker keeps redrawing 400 ms after the image loads so the native snapshot includes it. **Needs the iPhone to confirm photo pins render.**
 
 ## Milestone 6 (polish) — November 3, 2026
 

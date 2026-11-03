@@ -1,7 +1,8 @@
+import type { ImagePickerAsset } from 'expo-image-picker';
 import { useLocalSearchParams } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Alert, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
@@ -10,9 +11,11 @@ import { saveNewVisit } from '@/data/visits';
 import { venueNames } from '@/features/catalog/labels';
 import type { Venue } from '@/features/catalog/types';
 import { usePeople } from '@/features/people/use-people';
+import { addPickedPhotos } from '@/features/photos/add-photos';
+import { PendingPhotosPicker } from '@/features/photos/pending-photos-picker';
 import { newVisitDraftKey, useVisitDraft, type VisitDraft } from '@/features/visits/drafts';
 import { useCloseVisitForm, VisitForm, type ValidVisitDraft } from '@/features/visits/visit-form';
-import { useTheme } from '@/hooks/use-theme';
+import { useResolvedScheme, useTheme } from '@/hooks/use-theme';
 import { useLanguage, useT } from '@/i18n/i18n';
 import { todayLocalDate } from '@/lib/dates';
 import { newId } from '@/lib/ids';
@@ -36,6 +39,9 @@ export default function NewVisitScreen() {
     notes: '',
   }));
   const { draft, restored, dirty, update, clear } = useVisitDraft(newVisitDraftKey(placeId), initial);
+  // Picked photos live only in this screen until the visit is saved (they're not part of the draft).
+  const [pendingPhotos, setPendingPhotos] = useState<ImagePickerAsset[]>([]);
+  const scheme = useResolvedScheme();
 
   useEffect(() => {
     if (!placeId) return;
@@ -73,21 +79,37 @@ export default function NewVisitScreen() {
   const writerColor = byId(draft.writer)?.color;
 
   async function submit(valid: ValidVisitDraft) {
+    let visitId: string;
     try {
-      await saveNewVisit(db, {
-        submissionId: valid.submissionId,
-        placeId,
-        visitDate: valid.visitDate,
-        authorId: valid.writer,
-        rating: valid.rating,
-        notes: valid.notes,
-      });
+      visitId = (
+        await saveNewVisit(db, {
+          submissionId: valid.submissionId,
+          placeId,
+          visitDate: valid.visitDate,
+          authorId: valid.writer,
+          rating: valid.rating,
+          notes: valid.notes,
+        })
+      ).visitId;
     } catch {
       return 'visit.saveFailed' as const;
     }
     // Saved. A draft left behind by a failed removal could only resubmit this same visit (idempotent).
     await clear().catch(() => {});
     setWriter(valid.writer);
+    // Photos are added after the visit is saved; a failed photo never undoes the visit.
+    if (pendingPhotos.length > 0) {
+      void addPickedPhotos(db, pendingPhotos, { kind: 'visit', placeId, visitId, addedBy: valid.writer })
+        .then((result) => result.failed)
+        .catch(() => pendingPhotos.length)
+        .then((failed) => {
+          if (failed > 0) {
+            Alert.alert(t('photos.someFailed', { count: failed }), undefined, undefined, {
+              userInterfaceStyle: scheme,
+            });
+          }
+        });
+    }
     closeForm();
     return null;
   }
@@ -113,6 +135,9 @@ export default function NewVisitScreen() {
       canDiscard={dirty}
       onDiscard={discard}
       onSubmit={submit}
+      extra={(saving) => (
+        <PendingPhotosPicker assets={pendingPhotos} onChange={setPendingPhotos} disabled={saving} />
+      )}
     />
   );
 }

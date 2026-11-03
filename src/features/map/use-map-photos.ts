@@ -8,15 +8,14 @@ import { getMapPhotoFiles } from '@/data/photos';
 const NONE: ReadonlyMap<string, string> = new Map();
 
 /**
- * Photo file names for the visited places on the map (main photo, else newest visit photo),
- * loaded only while `enabled` (zoomed in close). Re-queried after journal writes.
+ * Photo file names for the places on the map (main photo, else newest visit photo), loaded only
+ * while `enabled` (zoomed in close). Re-queried after journal writes.
  */
 export function useMapPhotos(places: readonly MapPlace[], enabled: boolean) {
   const db = useSQLiteContext();
   const revision = useJournalRevision();
   const key = enabled
     ? places
-        .filter((place) => place.status === 'visited')
         .map((place) => place.id)
         .sort()
         .join(',')
