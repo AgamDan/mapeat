@@ -12,9 +12,11 @@ import { commonsFileName, fetchCommonsPhoto, type CommonsPhoto } from '@/feature
 import { addressLine, cuisineLabels, KIND_LABEL_KEYS, venueNames } from '@/features/catalog/labels';
 import type { Venue } from '@/features/catalog/types';
 import { usePeople } from '@/features/people/use-people';
+import { PlaceTagsRow } from '@/features/tags/place-tags-row';
 import { PlaceSummary } from '@/features/visits/place-summary';
 import { usePlaceJournal } from '@/features/visits/use-place-journal';
 import { VisitCard } from '@/features/visits/visit-card';
+import { PlaceJournalActions } from '@/features/wishlist/place-journal-actions';
 import { useTheme } from '@/hooks/use-theme';
 import { useLanguage, useT } from '@/i18n/i18n';
 
@@ -118,6 +120,10 @@ export default function PlaceScreen() {
           {t('visit.add')}
         </ThemedText>
       </Pressable>
+
+      <PlaceJournalActions placeId={venue.id} placeName={primary ?? t('place.unnamed')} journal={journal} />
+
+      <PlaceTagsRow placeId={venue.id} />
 
       {address ? <Detail label={t('place.address')} value={address} /> : null}
       {venue.openingHours ? <Detail label={t('place.hours')} value={venue.openingHours} /> : null}
