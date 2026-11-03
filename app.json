@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "mapeat",
+    "name": "MapEat",
     "slug": "mapeat",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -8,7 +8,7 @@
     "scheme": "mapeat",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/expo.icon"
+      "supportsTablet": false
     },
     "android": {
       "adaptiveIcon": {
@@ -28,9 +28,13 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#208AEF",
+          "backgroundColor": "#F3E6CF",
           "image": "./assets/images/splash-icon.png",
-          "imageWidth": 76
+          "imageWidth": 200,
+          "dark": {
+            "backgroundColor": "#171A21",
+            "image": "./assets/images/splash-icon.png"
+          }
         }
       ],
       "expo-localization",
