@@ -1,4 +1,5 @@
 import { router } from 'expo-router';
+import { SymbolView } from 'expo-symbols';
 import { ActivityIndicator, Pressable, SectionList, StyleSheet, View } from 'react-native';
 
 import { ScreenHeader } from '@/components/screen-header';
@@ -87,6 +88,19 @@ export default function WishlistScreen() {
   return (
     <View style={styles.screen}>
       <ScreenHeader title={t('wishlist.title')} />
+      <Pressable
+        accessibilityRole="button"
+        onPress={() => router.push('/add-from-link')}
+        style={({ pressed }) => [
+          styles.linkButton,
+          { borderColor: theme.accent, backgroundColor: theme.card },
+          pressed && styles.pressed,
+        ]}>
+        <SymbolView name={{ ios: 'link', android: 'link', web: 'link' }} size={16} tintColor={theme.accent} />
+        <ThemedText type="defaultBold" themeColor="accent">
+          {t('link.open')}
+        </ThemedText>
+      </Pressable>
       {body}
     </View>
   );
@@ -134,5 +148,17 @@ const styles = StyleSheet.create({
   },
   pressed: {
     opacity: 0.7,
+  },
+  linkButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.two,
+    marginHorizontal: Spacing.three,
+    marginTop: Spacing.two,
+    paddingVertical: Spacing.two,
+    paddingHorizontal: Spacing.three,
+    borderRadius: Radius.card,
+    borderWidth: 1,
   },
 });
