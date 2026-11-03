@@ -250,6 +250,7 @@ export async function deleteVisit(db: SQLiteDatabase, visitId: string) {
   await writeTransaction(db, async (txn) => {
     const visit = await txn.getFirstAsync<{ place_id: string }>('SELECT place_id FROM visits WHERE id = ?', [visitId]);
     photoFiles = await deleteVisitPhotoRows(txn, visitId);
+    await deleteVisitDishRows(txn, visitId);
     await txn.runAsync('DELETE FROM visit_reviews WHERE visit_id = ?', [visitId]);
     await txn.runAsync('DELETE FROM visits WHERE id = ?', [visitId]);
     if (visit) await clearWantReturnIfUnvisited(txn, visit.place_id);
@@ -276,6 +277,7 @@ export async function deleteReview(db: SQLiteDatabase, reviewId: string): Promis
     );
     if ((left?.n ?? 0) === 0) {
       photoFiles = await deleteVisitPhotoRows(txn, review.visit_id);
+      await deleteVisitDishRows(txn, review.visit_id);
       await txn.runAsync('DELETE FROM visits WHERE id = ?', [review.visit_id]);
       await clearWantReturnIfUnvisited(txn, review.place_id);
       visitDeleted = true;
@@ -284,6 +286,12 @@ export async function deleteReview(db: SQLiteDatabase, reviewId: string): Promis
   deletePhotoFiles(photoFiles);
   notifyJournalChanged();
   return { visitDeleted };
+}
+
+/** Removes a visit's dishes and their votes inside an ongoing write transaction. */
+async function deleteVisitDishRows(txn: SQLiteDatabase, visitId: string) {
+  await txn.runAsync('DELETE FROM dish_votes WHERE dish_id IN (SELECT id FROM dishes WHERE visit_id = ?)', [visitId]);
+  await txn.runAsync('DELETE FROM dishes WHERE visit_id = ?', [visitId]);
 }
 
 /**

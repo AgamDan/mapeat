@@ -120,6 +120,28 @@ const MIGRATIONS: readonly string[] = [
   CREATE INDEX photos_place_kind ON photos (place_id, kind, created_at DESC);
   ALTER TABLE journal_places ADD COLUMN cover_photo_id TEXT;
   `,
+  `
+  ALTER TABLE visit_reviews ADD COLUMN food INTEGER CHECK (food BETWEEN 1 AND 10);
+  ALTER TABLE visit_reviews ADD COLUMN service INTEGER CHECK (service BETWEEN 1 AND 10);
+  ALTER TABLE visit_reviews ADD COLUMN vibe INTEGER CHECK (vibe BETWEEN 1 AND 10);
+  CREATE TABLE dishes (
+    id TEXT PRIMARY KEY NOT NULL,
+    visit_id TEXT NOT NULL REFERENCES visits (id),
+    name TEXT NOT NULL,
+    submission_id TEXT NOT NULL UNIQUE,
+    added_by TEXT NOT NULL REFERENCES people (id),
+    created_at INTEGER NOT NULL,
+    updated_at INTEGER NOT NULL
+  );
+  CREATE INDEX dishes_visit ON dishes (visit_id, created_at);
+  CREATE TABLE dish_votes (
+    dish_id TEXT NOT NULL REFERENCES dishes (id),
+    person_id TEXT NOT NULL REFERENCES people (id),
+    vote INTEGER NOT NULL CHECK (vote IN (-1, 1)),
+    updated_at INTEGER NOT NULL,
+    PRIMARY KEY (dish_id, person_id)
+  );
+  `,
 ];
 
 /** Opens the app database: runs migrations, then loads the built-in catalog if it changed. */

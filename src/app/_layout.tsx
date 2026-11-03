@@ -161,6 +161,9 @@ function AppShell() {
               />
               <Stack.Screen name="tags" options={{ presentation: 'modal', title: t('tags.title') }} />
               <Stack.Screen name="search" options={{ presentation: 'modal', title: t('search.title') }} />
+              <Stack.Screen name="tonight" options={{ presentation: 'modal', title: t('tonight.title') }} />
+              <Stack.Screen name="add-from-link" options={{ presentation: 'modal', title: t('link.title') }} />
+              <Stack.Screen name="explorer" options={{ title: t('explorer.title') }} />
               <Stack.Screen
                 name="photo/[id]"
                 // A regular modal (like the visit forms): a full-screen modal over the place sheet
