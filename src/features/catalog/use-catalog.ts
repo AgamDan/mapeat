@@ -10,14 +10,19 @@ import {
 } from '@/data/journal';
 import { getPlacesInBounds, getStaleTiles, replacePlacesInArea } from '@/data/places';
 import { fetchVenues } from '@/features/catalog/overpass';
+import { spreadEvenly } from '@/features/catalog/spread';
 import { boundsOfRegion, boundsOfTiles, tileKeysForBounds, type Region } from '@/features/catalog/tiles';
 import type { Bounds } from '@/features/catalog/types';
 import { activeFilterCount } from '@/features/map/map-filter-store';
 
-/** Above this map height (degrees, ~5 km) we ask the user to zoom in instead of loading. */
-export const MAX_LATITUDE_DELTA = 0.045;
-const MAX_MARKERS = 250;
-const MAX_TILES_PER_FETCH = 16;
+/** Above this map height (degrees, ~11 km) we ask the user to zoom in instead of loading. */
+export const MAX_LATITUDE_DELTA = 0.1;
+const MAX_MARKERS = 400;
+/** How many places to read before spreading them out (more than are drawn). */
+const CANDIDATES = 4_000;
+/** Places are drawn this far beyond each screen edge (fraction of the screen), so panning shows pins at once. */
+const DRAW_MARGIN = 0.35;
+const MAX_TILES_PER_FETCH = 30;
 /** Built-in and fetched areas are refreshed from Overpass at most monthly. */
 const REFRESH_AFTER_MS = 30 * 24 * 60 * 60 * 1000;
 const FAILURE_COOLDOWN_MS = 30_000;
@@ -49,6 +54,12 @@ function cuisinesOf(places: readonly MapPlace[]) {
   return [...found].sort();
 }
 
+function padBounds(bounds: Bounds, margin: number): Bounds {
+  const lat = (bounds.north - bounds.south) * margin;
+  const lon = (bounds.east - bounds.west) * margin;
+  return { south: bounds.south - lat, north: bounds.north + lat, west: bounds.west - lon, east: bounds.east + lon };
+}
+
 /**
  * Keeps the visible map area's venues in sync: shows cached places immediately, then fetches
  * missing or month-old tiles from Overpass one request at a time. `filter` and journal changes
@@ -66,14 +77,19 @@ export function useCatalog(filter: MapFilter, journalRevision: number) {
   const lastFailureAt = useRef(0);
   const showSeq = useRef(0);
 
-  /** In view: journal places first (so catalog dots never crowd them out), then the rest. */
+  /**
+   * Around the view: journal places first (so catalog dots never crowd them out), then the rest
+   * spread evenly over the area.
+   */
   const placesInView = useCallback(
     async (bounds: Bounds, current: MapFilter) => {
-      const matching = await getMapPlaces(db, bounds, current, MAX_MARKERS);
-      if (current.show !== 'all') return matching;
-      const journal = await getMapPlaces(db, bounds, { ...current, show: 'journal' }, MAX_MARKERS);
+      const area = padBounds(bounds, DRAW_MARGIN);
+      const matching = await getMapPlaces(db, area, current, CANDIDATES);
+      if (current.show !== 'all') return spreadEvenly(matching, area, MAX_MARKERS);
+      const journal = await getMapPlaces(db, area, { ...current, show: 'journal' }, MAX_MARKERS);
       const ids = new Set(journal.map((place) => place.id));
-      return [...journal, ...matching.filter((place) => !ids.has(place.id))].slice(0, MAX_MARKERS);
+      const rest = matching.filter((place) => !ids.has(place.id));
+      return [...journal, ...spreadEvenly(rest, area, Math.max(0, MAX_MARKERS - journal.length))];
     },
     [db],
   );

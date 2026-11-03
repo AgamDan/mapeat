@@ -88,7 +88,7 @@ Progress: **M0 built November 2, 2026** — typecheck, lint, iOS bundle, and the
 
 ## Open questions to resolve when their milestone starts
 
-- M1: done with defaults — zoom limit ~5 km map height, 250 nearest markers, 30-day refresh, two Overpass servers. Revisit after phone testing (marker density, clustering).
+- M1: done with defaults — zoom limit ~5 km map height, 250 nearest markers, 30-day refresh, two Overpass servers. Revisit after phone testing (marker density, clustering). Nov 4 (user: area too small, odd when panning): zoom limit ~11 km, 400 markers spread evenly over a fixed grid (`src/features/catalog/spread.ts`), drawn 35% beyond each screen edge, up to 30 tiles per fetch.
 - M2: done. People default to Artur (terracotta) and Agam (sea blue), renamable in Settings; date only, no time. Deferred to M5 (only possible with two phones): what to do when a restored draft hits an edit conflict.
 - M3: done. Person filter on the Timeline resets each launch; tag selection saves on each tap; cuisine choices come from places in view.
 - M4: done. Viewer always dark; photos swipe oldest-first in both languages; menu photos show the date only (not who added).
