@@ -95,6 +95,16 @@ export function StatsCard({ stats, people }: StatsCardProps) {
           ) : null}
         </View>
       ) : null}
+
+      <Pressable
+        accessibilityRole="link"
+        onPress={() => router.push('/explorer')}
+        style={({ pressed }) => [styles.explorer, { borderTopColor: theme.line }, pressed && styles.pressed]}>
+        <SymbolView name={{ ios: 'map', android: 'map', web: 'map' }} size={16} tintColor={theme.sea} />
+        <ThemedText type="smallBold" style={{ color: theme.sea }}>
+          {t('explorer.open')}
+        </ThemedText>
+      </Pressable>
     </Postcard>
   );
 }
@@ -216,5 +226,13 @@ const styles = StyleSheet.create({
   },
   pressed: {
     opacity: 0.6,
+  },
+  explorer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.two,
+    minHeight: 44,
+    paddingTop: Spacing.two,
+    borderTopWidth: StyleSheet.hairlineWidth,
   },
 });
