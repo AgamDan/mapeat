@@ -12,3 +12,4 @@
   ```
 
 - **Format:** `{ version, fields, places }`. Each place is an array ordered like `fields`; `version` is the extract's date. Do not edit by hand.
+- **Areas (`israel-areas.json`, same build):** `{ version, cityFields, cities, neighborhoodFields, neighborhoods }` for explorer progress. Cities are `place=city|town` nodes; neighborhoods are `place=suburb|quarter|neighbourhood` nodes, each tied (by row index) to the nearest city inside its municipality boundary (`admin_level=8`). Names are `name`, `name:he`, `name:en`; coordinates are rounded to 5 decimals.
