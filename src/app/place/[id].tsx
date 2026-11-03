@@ -13,6 +13,7 @@ import { addressLine, cuisineLabels, KIND_LABEL_KEYS, venueNames } from '@/featu
 import type { Venue } from '@/features/catalog/types';
 import { usePeople } from '@/features/people/use-people';
 import { MenuPhotosSection } from '@/features/photos/menu-photos-section';
+import { usePhotosForVisits } from '@/features/photos/use-photos-for-visits';
 import { useCoverPhoto } from '@/features/photos/use-place-photos';
 import { PlaceTagsRow } from '@/features/tags/place-tags-row';
 import { PlaceSummary } from '@/features/visits/place-summary';
@@ -38,6 +39,7 @@ export default function PlaceScreen() {
   const { journal, error: journalError, retry: retryJournal } = usePlaceJournal(id);
   const { people, ready: peopleReady } = usePeople();
   const cover = useCoverPhoto(id);
+  const photosFor = usePhotosForVisits(journal?.visits.map((visit) => visit.id) ?? []);
 
   useEffect(() => {
     let cancelled = false;
@@ -157,7 +159,7 @@ export default function PlaceScreen() {
                 cover={cover}
               />
               {journal.visits.map((visit) => (
-                <VisitCard key={visit.id} visit={visit} people={people} />
+                <VisitCard key={visit.id} visit={visit} people={people} photos={photosFor(visit.id)} />
               ))}
             </>
           ) : (

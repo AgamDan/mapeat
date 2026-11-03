@@ -10,6 +10,7 @@ import type { TimelineVisit } from '@/data/journal';
 import type { PersonId } from '@/data/people';
 import { venueNames } from '@/features/catalog/labels';
 import { usePeople } from '@/features/people/use-people';
+import { usePhotosForVisits } from '@/features/photos/use-photos-for-visits';
 import { MonthHeader } from '@/features/timeline/month-header';
 import { useTimeline } from '@/features/timeline/use-timeline';
 import { VisitCard } from '@/features/visits/visit-card';
@@ -40,6 +41,7 @@ export default function TimelineScreen() {
   const [filter, setFilter] = useState<Filter>('all');
   const person = filter === 'all' ? null : filter;
   const { items, loading, error, hasMore, loadingMore, moreError, loadMore, retry } = useTimeline(person);
+  const photosFor = usePhotosForVisits(items.map((item) => item.id));
   const sections = groupByMonth(items);
 
   const choices: Choice<Filter>[] = [
@@ -113,6 +115,7 @@ export default function TimelineScreen() {
               people={people}
               placeName={(item.venue && venueNames(item.venue, language).primary) || t('place.unnamed')}
               linkPlace={item.venue !== null}
+              photos={photosFor(item.id)}
             />
           </View>
         )}

@@ -145,6 +145,7 @@ export const he: Translations = {
   'photos.removeCover': 'הסרת תמונת השער',
   'photos.isCover': 'תמונת השער שלנו',
   'photos.coverHint': 'פרטית: רק שניכם רואים אותה.',
+  'photos.coverFailed': 'לא הצלחנו לשנות את תמונת השער. נסו שוב.',
   'photos.viewerTitle': 'תמונה',
   'photos.notFound': 'התמונה הזו כבר לא קיימת.',
   'photos.webUnavailable': 'התמונות זמינות באייפון.',

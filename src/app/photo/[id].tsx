@@ -152,7 +152,7 @@ export default function PhotoScreen() {
   const toggleCover = (photo: Photo) =>
     run(
       () => setCoverPhoto(db, photo.placeId, coverId === photo.id ? null : photo.id),
-      'journal.updateFailed',
+      'photos.coverFailed',
     );
 
   let body: ReactNode;

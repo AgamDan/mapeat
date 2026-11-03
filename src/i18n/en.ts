@@ -143,6 +143,7 @@ export const en = {
   'photos.removeCover': 'Remove cover',
   'photos.isCover': 'Our cover',
   'photos.coverHint': 'Private: only the two of you see it.',
+  'photos.coverFailed': "Couldn't change the cover. Try again.",
   'photos.viewerTitle': 'Photo',
   'photos.notFound': 'This photo no longer exists.',
   'photos.webUnavailable': 'Photos are available on iPhone.',
