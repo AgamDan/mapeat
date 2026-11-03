@@ -13,6 +13,7 @@ import { deleteReview, deleteVisit, getVisit, updateVisitDate, type Visit, type 
 import { KIND_LABEL_KEYS, venueNames } from '@/features/catalog/labels';
 import type { Venue } from '@/features/catalog/types';
 import { usePeople } from '@/features/people/use-people';
+import { VisitPhotosSection } from '@/features/photos/visit-photos-section';
 import { VisitCard } from '@/features/visits/visit-card';
 import { useResolvedScheme, useTheme } from '@/hooks/use-theme';
 import type { TranslationKey } from '@/i18n/en';
@@ -163,7 +164,9 @@ export default function VisitScreen() {
     <ScrollView contentContainerStyle={styles.content}>
       <ThemedText type="title">{placeName}</ThemedText>
 
-      <VisitCard visit={visit} people={people} openable={false} />
+      <VisitCard visit={visit} people={people} openable={false} showPhotos={false} />
+
+      <VisitPhotosSection placeId={visit.placeId} visitId={visit.id} />
 
       <View style={[styles.panel, { borderColor: theme.line, backgroundColor: theme.backgroundRaised }]}>
         <DateField label={t('visit.changeDate')} value={visit.visitDate} onChange={changeDate} />

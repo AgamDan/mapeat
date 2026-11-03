@@ -5,7 +5,9 @@ import { Postcard } from '@/components/postcard';
 import { ThemedText } from '@/components/themed-text';
 import { Fonts, Radius, Spacing } from '@/constants/theme';
 import type { Person } from '@/data/people';
+import type { Photo } from '@/data/photos';
 import type { Visit, VisitReview } from '@/data/visits';
+import { VisitPhotoStrip } from '@/features/photos/visit-photo-strip';
 import { useTheme } from '@/hooks/use-theme';
 import { useLanguage, useT } from '@/i18n/i18n';
 import { formatVisitDate } from '@/lib/dates';
@@ -20,13 +22,28 @@ type VisitCardProps = {
   linkPlace?: boolean;
   /** When true (default), tapping the date opens the visit screen. */
   openable?: boolean;
+  /**
+   * The visit's photos for the thumbnail strip, when already batch-loaded (e.g. with
+   * `getPhotosForVisits` for a list). If omitted, the card loads them itself.
+   */
+  photos?: Photo[];
+  /** Shows the photo strip (default true); off where the photos are shown in full anyway. */
+  showPhotos?: boolean;
 };
 
 /**
  * One visit as a stamped postcard. Its "back" has two halves — one per person, each in their own
  * ink — so both reviews of the same visit are read together. In RTL the halves flip naturally.
  */
-export function VisitCard({ visit, people, placeName, linkPlace = false, openable = true }: VisitCardProps) {
+export function VisitCard({
+  visit,
+  people,
+  placeName,
+  linkPlace = false,
+  openable = true,
+  photos,
+  showPhotos = true,
+}: VisitCardProps) {
   const theme = useTheme();
   const { language } = useLanguage();
   const date = formatVisitDate(visit.visitDate, language, 'long');
@@ -67,6 +84,7 @@ export function VisitCard({ visit, people, placeName, linkPlace = false, openabl
           dateText
         )}
       </View>
+      {showPhotos ? <VisitPhotoStrip visitId={visit.id} photos={photos} openVisit={openable} /> : null}
       <View style={[styles.back, { borderTopColor: theme.line }]}>
         {people.map((person, index) => (
           <View
