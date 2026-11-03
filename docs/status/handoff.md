@@ -20,6 +20,16 @@ The user asked that work be split across parallel sub-agents where safe. Continu
 
 Expected split value: M2 small (visit form vs. place visit history, after the data layer), M3 high (wishlist / tags / timeline), M4 medium (menu-photo vs. visit-photo UI after one storage layer), M5 low, M6 parallel read-only audits (RTL, error states).
 
+## Milestone 6 (polish) — November 3, 2026
+
+- User decision: M5 (Supabase + Apple sign-in + sharing) is postponed; the user will set up Supabase later, and data from before Supabase does not need to be migrated.
+- User-reported phone bug fixed: opening a menu photo spun forever and the close button jumped (viewer now a regular modal with its header hidden from the start).
+- M4 code review: two bugs fixed (cover change reordered "want to go back"; a late error after saving a photo could delete its file).
+- Built M6: place search (`/search`, `searchPlaces`, map focus store), first-use map hint, Timeline stats card (`src/data/stats.ts`), share visit as postcard image, warmer empty states, postcard app icon + splash (rendered from SVG via headless Edge; source in gitignored `.superpowers/icon/`), RTL + error-state audits with fixes.
+- Verified: typecheck, lint, iOS + web bundles, 103 data-layer checks. **Not yet verified on the iPhone** — especially search → map fly → place sheet timing, share capture, stats card.
+- Open, needs the phone: photo-viewer swipe order in Hebrew; date picker direction in Hebrew; distinguishing "photo failed to load" from "no photo yet" on the place page.
+- Next: user phone test of everything; then M5 when the user creates the Supabase project.
+
 ## Milestone 4 — November 3, 2026
 
 - M3 code review: two bugs fixed (stale "want to go back" after deleting all visits; old wishlist date after re-adding).

@@ -67,7 +67,7 @@ export default function WishlistScreen() {
             title={t('wishlist.emptyTitle')}
             body={t('wishlist.emptyBody')}
             action={{
-              label: t('tabs.map'),
+              label: t('empty.goToMap'),
               symbol: { ios: 'map', android: 'map', web: 'map' },
               onPress: () => router.navigate('/'),
             }}

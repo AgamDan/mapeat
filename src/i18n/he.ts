@@ -172,6 +172,7 @@ export const he: Translations = {
   'share.failed': 'לא הצלחנו לשתף את הגלויה. נסו שוב.',
   'share.unavailable': 'שיתוף לא זמין במכשיר הזה.',
   'share.footer': 'שותף מ־MapEat',
+  'empty.goToMap': 'למפה',
   'settings.people': 'השמות שלנו',
   'settings.personName': 'שם',
   'timeline.title': 'ציר זמן',

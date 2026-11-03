@@ -170,6 +170,7 @@ export const en = {
   'share.failed': "Couldn't share the postcard. Try again.",
   'share.unavailable': 'Sharing is not available on this device.',
   'share.footer': 'Shared from MapEat',
+  'empty.goToMap': 'Go to the map',
   'settings.people': 'Our names',
   'settings.personName': 'Name',
   'timeline.title': 'Timeline',

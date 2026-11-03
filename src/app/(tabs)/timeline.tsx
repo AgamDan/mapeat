@@ -95,7 +95,7 @@ export default function TimelineScreen() {
       title={t('timeline.emptyTitle')}
       body={t('timeline.emptyBody')}
       action={{
-        label: t('tabs.map'),
+        label: t('empty.goToMap'),
         symbol: { ios: 'map', android: 'map', web: 'map' },
         onPress: () => router.navigate('/'),
       }}
