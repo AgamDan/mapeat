@@ -124,8 +124,14 @@ const MIGRATIONS: readonly string[] = [
 
 /** Opens the app database: runs migrations, then loads the built-in catalog if it changed. */
 export async function initDatabase(db: SQLiteDatabase) {
-  await migrateDatabase(db);
-  await ensurePeople(db);
+  try {
+    await migrateDatabase(db);
+    await ensurePeople(db);
+  } catch (error) {
+    // expo-sqlite doesn't close a connection whose init failed; close it so a retry starts clean.
+    await db.closeAsync().catch(() => {});
+    throw error;
+  }
   try {
     await seedStarterCatalog(db);
   } catch (error) {

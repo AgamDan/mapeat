@@ -408,7 +408,7 @@ export async function searchPlaces(
         OR LOWER(COALESCE(p.name_he, '')) LIKE ? ESCAPE '\\'
         OR LOWER(COALESCE(p.name_en, '')) LIKE ? ESCAPE '\\'
      ORDER BY
-       (jp.place_id IS NOT NULL) DESC,
+       (${visited} OR jp.wishlist = 1 OR jp.want_return = 1) DESC,
        (LOWER(COALESCE(p.name, '')) LIKE ? ESCAPE '\\'
          OR LOWER(COALESCE(p.name_he, '')) LIKE ? ESCAPE '\\'
          OR LOWER(COALESCE(p.name_en, '')) LIKE ? ESCAPE '\\') DESC,

@@ -7,18 +7,29 @@ import { useSyncExternalStore } from 'react';
 export type MapFocus = { placeId: string; latitude: number; longitude: number; requestedAt: number };
 
 let pending: MapFocus | null = null;
+/** Increments only when a new request arrives, so re-renders never re-trigger handling. */
+let version = 0;
 const listeners = new Set<() => void>();
 
 export function requestMapFocus(focus: Omit<MapFocus, 'requestedAt'>) {
   pending = { ...focus, requestedAt: Date.now() };
+  version++;
   for (const listener of listeners) listener();
 }
 
-/** Returns the pending focus request (if any) and clears it. */
+/** Returns the pending focus request (if any) and clears it. Does not notify. */
 export function takeMapFocus() {
   const focus = pending;
   pending = null;
   return focus;
+}
+
+/**
+ * Puts back a request that was interrupted before the place opened, unless a newer one is already
+ * waiting. Silent: it is handled the next time the map gains focus.
+ */
+export function restoreMapFocus(focus: MapFocus) {
+  if (!pending) pending = focus;
 }
 
 function subscribe(listener: () => void) {
@@ -26,7 +37,7 @@ function subscribe(listener: () => void) {
   return () => listeners.delete(listener);
 }
 
-/** The pending request, re-rendering when a new one arrives. */
-export function usePendingMapFocus() {
-  return useSyncExternalStore(subscribe, () => pending);
+/** A number that changes only when a new focus request arrives. */
+export function useMapFocusVersion() {
+  return useSyncExternalStore(subscribe, () => version);
 }

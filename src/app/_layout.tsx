@@ -39,7 +39,8 @@ export default function RootLayout() {
           key={attempt}
           databaseName={DATABASE_NAME}
           onInit={initDatabase}
-          onError={() => setDbError(true)}>
+          // expo-sqlite calls onError while rendering; defer the state change to after that render.
+          onError={() => queueMicrotask(() => setDbError(true))}>
           <AppShell />
         </SQLiteProvider>
       )}
