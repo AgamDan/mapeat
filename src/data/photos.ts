@@ -74,18 +74,19 @@ function toPhoto(row: PhotoRow): Photo {
 /**
  * Records a stored photo file. Visit photos need an existing visit of that place and respect
  * `MAX_PHOTOS_PER_VISIT` (throws `PhotoLimitError`). Menu photos may be added before any visit.
+ * Never throws once the row is saved, so callers may safely delete the file on any error.
  */
 export async function addPhoto(db: SQLiteDatabase, input: NewPhotoInput): Promise<Photo> {
   if ((input.kind === 'visit') !== (input.visitId !== null)) {
     throw new JournalValidationError('Visit photos need a visit; menu photos must not have one');
   }
-  let id = input.id;
+  let saved: Photo | null = null;
   await writeTransaction(db, async (txn) => {
-    const existing = await txn.getFirstAsync<{ id: string }>('SELECT id FROM photos WHERE submission_id = ?', [
+    const existing = await txn.getFirstAsync<PhotoRow>('SELECT * FROM photos WHERE submission_id = ?', [
       input.submissionId,
     ]);
     if (existing) {
-      id = existing.id;
+      saved = toPhoto(existing);
       return;
     }
     if (input.visitId) {
@@ -112,11 +113,25 @@ export async function addPhoto(db: SQLiteDatabase, input: NewPhotoInput): Promis
         input.width, input.height, input.takenAt, input.submissionId, now,
       ],
     );
+    saved = {
+      id: input.id,
+      kind: input.kind,
+      placeId: input.placeId,
+      visitId: input.visitId,
+      addedBy: input.addedBy,
+      fileName: input.fileName,
+      width: input.width,
+      height: input.height,
+      takenAt: input.takenAt,
+      createdAt: now,
+    };
   });
-  notifyJournalChanged();
-  const photo = await getPhoto(db, id);
-  if (!photo) throw new Error(`Photo ${id} missing after insert`);
-  return photo;
+  try {
+    notifyJournalChanged();
+  } catch {
+    // A listener failing must not turn a saved photo into a reported failure.
+  }
+  return saved!;
 }
 
 export async function getPhoto(db: SQLiteDatabase, id: string) {
@@ -192,11 +207,8 @@ export async function setCoverPhoto(db: SQLiteDatabase, placeId: string, photoId
         throw new JournalValidationError('A cover must be one of this place’s visit photos');
       }
     }
-    await txn.runAsync('UPDATE journal_places SET cover_photo_id = ?, updated_at = ? WHERE place_id = ?', [
-      photoId,
-      Date.now(),
-      placeId,
-    ]);
+    // updated_at is left alone: it orders the "want to go back" list, which a cover must not reorder.
+    await txn.runAsync('UPDATE journal_places SET cover_photo_id = ? WHERE place_id = ?', [photoId, placeId]);
   });
   notifyJournalChanged();
 }
