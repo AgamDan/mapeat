@@ -331,10 +331,18 @@ function PhotoDetails({
             onPress={onToggleCover}
             style={({ pressed }) => [
               styles.button,
-              { borderColor: palette.line },
+              styles.coverButton,
+              isCover
+                ? { borderColor: palette.line }
+                : { borderColor: palette.accent, backgroundColor: palette.accent },
               (pressed || busy) && styles.pressed,
             ]}>
-            <ThemedText type="smallBold" style={{ color: palette.text }}>
+            <SymbolView
+              name={{ ios: isCover ? 'star.slash' : 'star.fill', android: 'star', web: 'star' }}
+              size={16}
+              tintColor={isCover ? palette.text : palette.onAccent}
+            />
+            <ThemedText type="smallBold" style={{ color: isCover ? palette.text : palette.onAccent }}>
               {isCover ? t('photos.removeCover') : t('photos.setCover')}
             </ThemedText>
           </Pressable>
@@ -418,6 +426,11 @@ const styles = StyleSheet.create({
     gap: Spacing.half,
   },
   actions: {
+    flexDirection: 'row',
+    gap: Spacing.two,
+  },
+  coverButton: {
+    flex: 2,
     flexDirection: 'row',
     gap: Spacing.two,
   },

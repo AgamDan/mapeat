@@ -71,6 +71,7 @@ These answers resolve or narrow the open decisions listed later in this document
 | Backend timing (updated Nov 3) | Supabase and two-phone sharing (M5) are postponed; the user will set up Supabase later. Data recorded before Supabase does not need to be migrated (start fresh in the cloud). |
 | M6 polish scope | Place search from the Map tab; RTL/LTR audit; weak-network/error-state audit; friendlier empty states + a first-use map hint; postcard app icon and splash; small Timeline stats (visits this year, top-rated places, where you disagree most); share a visit postcard as an image. |
 | Restaurant photos (Nov 4) | Google photos can't be shown in-app (Places API needs billing; scraping is forbidden). Instead: a "See photos on Google Maps" button opens the place in Google Maps (free URL scheme). When a place has no licensed public photo, the top of the place page shows the couple's own photo (cover, else newest visit photo, else newest menu photo) labeled "Our photo" — this replaces the earlier rule that private photos never appear in that slot. |
+| Our photos on place and map (Nov 4) | "Add photos" button on the place page; photos still belong to a visit (latest/only visit automatically, pick among several, or add a visit first). Zoomed in close, visited places show a round photo pin (main photo, else newest visit photo; never menu photos). The cover is called "main photo" and is chosen in the photo viewer. Menu photos stay a separate section. |
 
 ## Success
 

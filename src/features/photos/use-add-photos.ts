@@ -13,7 +13,7 @@ import { useSettings } from '@/settings/settings-provider';
  * and records the photos as the current "Writing as" person. Shows translated alerts for denied
  * camera access, a full visit, or failed images. `remaining` limits library multi-select.
  */
-export function useAddPhotos(target: Omit<AddTarget, 'addedBy'> | null, remaining: number) {
+export function useAddPhotos(targetProp: Omit<AddTarget, 'addedBy'> | null, remainingProp: number) {
   const db = useSQLiteContext();
   const t = useT();
   const scheme = useResolvedScheme();
@@ -22,8 +22,8 @@ export function useAddPhotos(target: Omit<AddTarget, 'addedBy'> | null, remainin
   const busy = useRef(false);
 
   const run = useCallback(
-    async (source: PhotoSource) => {
-      if (!target || busy.current) return;
+    async (source: PhotoSource, target: Omit<AddTarget, 'addedBy'>, remaining: number) => {
+      if (busy.current) return;
       busy.current = true;
       const alertOptions = { userInterfaceStyle: scheme } as const;
       try {
@@ -52,11 +52,16 @@ export function useAddPhotos(target: Omit<AddTarget, 'addedBy'> | null, remainin
         setAdding(false);
       }
     },
-    [db, remaining, scheme, t, target, writer],
+    [db, scheme, t, writer],
   );
 
-  /** Asks "Take photo / Choose from library", then runs the flow. */
-  const add = useCallback(() => {
+  /**
+   * Asks "Take photo / Choose from library", then runs the flow. Pass `to` to add to a target
+   * chosen at tap time (e.g. a visit picked on the place page) instead of the hook's own.
+   */
+  const add = useCallback((to?: { target: Omit<AddTarget, 'addedBy'>; remaining: number }) => {
+    const target = to?.target ?? targetProp;
+    const remaining = to?.remaining ?? remainingProp;
     if (!target || busy.current) return;
     if (remaining <= 0 && target.kind === 'visit') {
       Alert.alert(t('photos.limitReached', { max: MAX_PHOTOS_PER_VISIT }), undefined, undefined, {
@@ -68,13 +73,13 @@ export function useAddPhotos(target: Omit<AddTarget, 'addedBy'> | null, remainin
       target.kind === 'menu' ? t('photos.addMenu') : t('photos.add'),
       undefined,
       [
-        { text: t('photos.takePhoto'), onPress: () => void run('camera') },
-        { text: t('photos.chooseFromLibrary'), onPress: () => void run('library') },
+        { text: t('photos.takePhoto'), onPress: () => void run('camera', target, remaining) },
+        { text: t('photos.chooseFromLibrary'), onPress: () => void run('library', target, remaining) },
         { text: t('visit.cancel'), style: 'cancel' },
       ],
       { userInterfaceStyle: scheme },
     );
-  }, [remaining, run, scheme, t, target]);
+  }, [remainingProp, run, scheme, t, targetProp]);
 
   return { add, adding };
 }

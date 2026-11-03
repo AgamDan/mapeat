@@ -83,7 +83,7 @@ export function MenuPhotosSection({ placeId }: { placeId: string }) {
           accessibilityRole="button"
           accessibilityState={{ busy: adding }}
           disabled={adding}
-          onPress={add}
+          onPress={() => add()}
           style={({ pressed }) => [
             styles.button,
             { borderColor: theme.line },

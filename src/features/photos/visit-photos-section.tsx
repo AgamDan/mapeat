@@ -58,7 +58,7 @@ export function VisitPhotosSection({ placeId, visitId }: { placeId: string; visi
             accessibilityRole="button"
             accessibilityState={{ disabled, busy: adding }}
             disabled={disabled}
-            onPress={add}
+            onPress={() => add()}
             style={({ pressed }) => [
               styles.button,
               { borderColor: theme.accent },

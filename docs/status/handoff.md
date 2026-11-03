@@ -28,6 +28,8 @@ Expected split value: M2 small (visit form vs. place visit history, after the da
 - Fonts are imported per weight (`@expo-google-fonts/rubik/700Bold`, `useFonts` from `expo-font`) so only 6 files are bundled. After installing font packages, restart Metro with `npx expo start --go --clear` (a running Metro reports "Unable to resolve module …ttf").
 - Map header shows the MapEat wordmark with a pin-and-plate mark (`src/components/brand-mark.tsx`, drawn with views; `ScreenHeader brand`).
 - Search vs. filters (user choice): a place opened from search stays drawn even if the filters would hide it (`getMapPlace` + a filter-match check in the map screen), with a "Filters are on · Clear" note next to the filter button. Picking another place on the map drops it.
+- Map area (user: too small, odd when panning): zoom limit ~11 km, 400 pins spread evenly on a fixed grid (`src/features/catalog/spread.ts`), drawn 35% beyond the screen edges.
+- Photos (user choices): "Add photos" on the place page (photos still belong to a visit: one visit → it; several → pick by date; none → offer "Add visit"). Zoomed in close (map ≤ ~1.7 km tall), visited places with photos show a round photo pin: main photo, else newest visit photo, never menu photos (`getMapPhotoFiles`, `useMapPhotos`). "Cover" is now called "main photo" in the UI; the viewer's "Set as main photo" is a filled star button. Menu photos unchanged and separate.
 
 ## Milestone 6 (polish) — November 3, 2026
 

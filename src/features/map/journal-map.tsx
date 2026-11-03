@@ -23,6 +23,8 @@ export type JournalMapProps = {
   placeLabel: (place: MapPlace) => string;
   onSelectPlace: (id: string) => void;
   onRegionChangeComplete: (region: Region) => void;
+  /** Photo file per place id, drawn as round photo pins (only passed when zoomed in close). */
+  photoFiles?: ReadonlyMap<string, string>;
 };
 
 /**
@@ -56,6 +58,7 @@ export function JournalMap({
   placeLabel,
   onSelectPlace,
   onRegionChangeComplete,
+  photoFiles,
 }: JournalMapProps) {
   const mapRef = useRef<MapView>(null);
   const region = useRef<Region>(initialRegion);
@@ -119,12 +122,14 @@ export function JournalMap({
         }}>
         {places.map((place) => {
           const selected = place.id === selectedId;
+          const photoFile = photoFiles?.get(place.id);
           return (
             <PlaceMarker
-              key={placeMarkerKey(place, selected, scheme)}
+              key={placeMarkerKey(place, selected, scheme, photoFile)}
               place={place}
               selected={selected}
               label={placeLabel(place)}
+              photoFile={photoFile}
               onSelect={select}
             />
           );

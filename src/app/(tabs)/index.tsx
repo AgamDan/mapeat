@@ -27,6 +27,7 @@ import {
 import { MapHint } from '@/features/map/map-hint';
 import { SearchButton } from '@/features/map/search-button';
 import { useMapFocusRequests } from '@/features/map/use-map-focus';
+import { useMapPhotos } from '@/features/map/use-map-photos';
 import { setVisibleCuisines } from '@/features/map/visible-cuisines-store';
 import { useResolvedScheme, useTheme } from '@/hooks/use-theme';
 import { useLanguage, useT } from '@/i18n/i18n';
@@ -36,6 +37,8 @@ const INITIAL_REGION = { latitude: 32.0809, longitude: 34.7806, latitudeDelta: 0
 const NOTE_DURATION_MS = 4_000;
 /** Street-level zoom when flying to a single place (e.g. from search). */
 const PLACE_DELTA = 0.006;
+/** Zoomed in at least this close (map height in degrees, ~1.7 km), visited places show our photo. */
+const PHOTO_PIN_DELTA = 0.015;
 
 export default function MapScreen() {
   const t = useT();
@@ -131,6 +134,8 @@ export default function MapScreen() {
   const searchedHidden = searched != null && !searched.matchesFilter;
   const shownPlaces =
     searched && !places.some((place) => place.id === searched.place.id) ? [...places, searched.place] : places;
+  const [zoomedClose, setZoomedClose] = useState(INITIAL_REGION.latitudeDelta <= PHOTO_PIN_DELTA);
+  const photoFiles = useMapPhotos(shownPlaces, zoomedClose);
 
   const flyToPlace = useCallback((latitude: number, longitude: number, placeId: string) => {
     setSearchedId(placeId);
@@ -142,6 +147,7 @@ export default function MapScreen() {
   const regionChanged = useCallback(
     (region: Region) => {
       setMapCenter(region.latitude, region.longitude);
+      setZoomedClose(region.latitudeDelta <= PHOTO_PIN_DELTA);
       onRegionChange(region);
     },
     [onRegionChange],
@@ -197,6 +203,7 @@ export default function MapScreen() {
         placeLabel={placeLabel}
         onSelectPlace={pickOnMap}
         onRegionChangeComplete={regionChanged}
+        photoFiles={photoFiles}
       />
 
       <View pointerEvents="box-none" style={styles.top}>

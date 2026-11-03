@@ -1,9 +1,10 @@
-import { memo } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { memo, useEffect, useState } from 'react';
+import { Image, StyleSheet, View } from 'react-native';
 import { Marker } from 'react-native-maps';
 
 import { Radius } from '@/constants/theme';
 import type { MapPlace } from '@/data/journal';
+import { photoUri } from '@/features/photos/photo-files';
 import { useTheme } from '@/hooks/use-theme';
 
 /** A heart drawn from a square turned 45° and two circles on its upper edges. */
@@ -48,8 +49,50 @@ function OutlinedHeart({ size, fill, outline }: { size: number; fill: string; ou
   );
 }
 
-function PinBody({ place, selected }: { place: MapPlace; selected: boolean }) {
+function PinBody({
+  place,
+  selected,
+  photoFile,
+  onPhotoReady,
+}: {
+  place: MapPlace;
+  selected: boolean;
+  photoFile?: string;
+  onPhotoReady: () => void;
+}) {
   const theme = useTheme();
+
+  if (place.status === 'visited' && photoFile) {
+    const size = selected ? 52 : 42;
+    return (
+      <View style={[styles.photoHitArea, { width: size + 12, height: size + 12 }]} collapsable={false}>
+        <View
+          style={[
+            styles.photoFrame,
+            {
+              width: size,
+              height: size,
+              borderRadius: size / 2,
+              borderColor: selected ? theme.accent : theme.card,
+              backgroundColor: theme.card,
+            },
+          ]}>
+          <Image
+            source={{ uri: photoUri(photoFile) }}
+            style={styles.photo}
+            resizeMode="cover"
+            onLoad={onPhotoReady}
+            onError={onPhotoReady}
+          />
+        </View>
+        {place.wantReturn ? (
+          <View style={[styles.badge, { backgroundColor: theme.card }]}>
+            <Heart size={6} color={theme.accent} />
+          </View>
+        ) : null}
+      </View>
+    );
+  }
 
   if (place.status === 'visited') {
     const size = selected ? 30 : 24;
@@ -104,34 +147,55 @@ type PlaceMarkerProps = {
   place: MapPlace;
   selected: boolean;
   label: string;
+  /** Our photo for this place (only visited places, only when zoomed in close). */
+  photoFile?: string;
   onSelect: (id: string) => void;
 };
 
-function zIndexOf(place: MapPlace, selected: boolean) {
+function zIndexOf(place: MapPlace, selected: boolean, hasPhoto: boolean) {
   if (selected) return 10;
+  if (hasPhoto) return 4;
   if (place.status === 'visited') return 3;
   if (place.status === 'wishlist') return 2;
   return 1;
 }
 
+/** If a photo never reports loading, stop redrawing the marker after this long anyway. */
+const PHOTO_READY_TIMEOUT_MS = 3_000;
+
 /**
  * One place on the map. Memoized on what it draws, so re-querying places (a new array of new
  * objects) doesn't re-render every marker. The parent keys it by everything that changes its
  * look, because with `tracksViewChanges={false}` a changed view must be re-mounted to update.
+ * A photo pin keeps tracking view changes until its image has loaded, or the image wouldn't show.
  */
 export const PlaceMarker = memo(
-  function PlaceMarker({ place, selected, label, onSelect }: PlaceMarkerProps) {
+  function PlaceMarker({ place, selected, label, photoFile, onSelect }: PlaceMarkerProps) {
+    const [photoReady, setPhotoReady] = useState(false);
+    const showsPhoto = place.status === 'visited' && photoFile != null;
+
+    useEffect(() => {
+      if (!showsPhoto) return;
+      const timer = setTimeout(() => setPhotoReady(true), PHOTO_READY_TIMEOUT_MS);
+      return () => clearTimeout(timer);
+    }, [showsPhoto]);
+
     return (
       <Marker
         coordinate={{ latitude: place.lat, longitude: place.lon }}
         anchor={{ x: 0.5, y: 0.5 }}
-        tracksViewChanges={false}
+        tracksViewChanges={showsPhoto && !photoReady}
         accessibilityLabel={label}
-        zIndex={zIndexOf(place, selected)}
+        zIndex={zIndexOf(place, selected, showsPhoto)}
         onPress={() => onSelect(place.id)}>
         {/* The root has collapsable={false}: otherwise the new architecture flattens this
             layout-only wrapper, the native marker shrinks to the drawing, and taps miss it. */}
-        <PinBody place={place} selected={selected} />
+        <PinBody
+          place={place}
+          selected={selected}
+          photoFile={photoFile}
+          onPhotoReady={() => setPhotoReady(true)}
+        />
       </Marker>
     );
   },
@@ -143,12 +207,13 @@ export const PlaceMarker = memo(
     prev.place.wantReturn === next.place.wantReturn &&
     prev.selected === next.selected &&
     prev.label === next.label &&
+    prev.photoFile === next.photoFile &&
     prev.onSelect === next.onSelect,
 );
 
 /** Key for a marker: changes whenever its drawing changes (see `PlaceMarker`). */
-export function placeMarkerKey(place: MapPlace, selected: boolean, scheme: string) {
-  return `${place.id}:${place.status}:${place.wantReturn ? 1 : 0}:${selected ? 1 : 0}:${scheme}`;
+export function placeMarkerKey(place: MapPlace, selected: boolean, scheme: string, photoFile?: string) {
+  return `${place.id}:${place.status}:${place.wantReturn ? 1 : 0}:${selected ? 1 : 0}:${scheme}:${photoFile ?? ''}`;
 }
 
 const styles = StyleSheet.create({
@@ -165,6 +230,18 @@ const styles = StyleSheet.create({
   journalHitArea: {
     width: 36,
     height: 36,
+  },
+  photoHitArea: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  photoFrame: {
+    borderWidth: 3,
+    overflow: 'hidden',
+  },
+  photo: {
+    width: '100%',
+    height: '100%',
   },
   dot: {
     width: 12,

@@ -13,6 +13,7 @@ import { addressLine, cuisineLabels, KIND_LABEL_KEYS, venueNames } from '@/featu
 import type { Venue } from '@/features/catalog/types';
 import { usePeople } from '@/features/people/use-people';
 import { MenuPhotosSection } from '@/features/photos/menu-photos-section';
+import { PlaceAddPhotosButton } from '@/features/photos/place-add-photos-button';
 import { usePhotosForVisits } from '@/features/photos/use-photos-for-visits';
 import { useCoverPhoto, useHeaderPhoto } from '@/features/photos/use-place-photos';
 import { photoUri } from '@/features/photos/photo-files';
@@ -158,6 +159,14 @@ export default function PlaceScreen() {
           {t('visit.add')}
         </ThemedText>
       </Pressable>
+
+      {journal ? (
+        <PlaceAddPhotosButton
+          placeId={venue.id}
+          visits={journal.visits}
+          photoCount={(visitId) => photosFor(visitId)?.length ?? 0}
+        />
+      ) : null}
 
       <PlaceJournalActions placeId={venue.id} placeName={primary ?? t('place.unnamed')} journal={journal} />
 

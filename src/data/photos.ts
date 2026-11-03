@@ -258,3 +258,27 @@ export async function getHeaderPhoto(db: SQLiteDatabase, placeId: string) {
   );
   return row ? toPhoto(row) : null;
 }
+
+/**
+ * The photo file to draw on each place's map pin, keyed by place id: the chosen main photo
+ * (cover), otherwise the newest visit photo. Menu photos are never used. Places without one are
+ * left out. Every photo's place has a `journal_places` row (foreign key), so that table is the start.
+ */
+export async function getMapPhotoFiles(db: SQLiteDatabase, placeIds: readonly string[]) {
+  const result = new Map<string, string>();
+  for (let start = 0; start < placeIds.length; start += 500) {
+    const chunk = placeIds.slice(start, start + 500);
+    const marks = chunk.map(() => '?').join(', ');
+    const rows = await db.getAllAsync<{ place_id: string; file_name: string | null }>(
+      `SELECT jp.place_id AS place_id, COALESCE(
+         (SELECT c.file_name FROM photos c WHERE c.id = jp.cover_photo_id),
+         (SELECT n.file_name FROM photos n WHERE n.place_id = jp.place_id AND n.kind = 'visit'
+          ORDER BY COALESCE(n.taken_at, n.created_at) DESC, n.created_at DESC, n.id LIMIT 1)
+       ) AS file_name
+       FROM journal_places jp WHERE jp.place_id IN (${marks})`,
+      [...chunk],
+    );
+    for (const row of rows) if (row.file_name) result.set(row.place_id, row.file_name);
+  }
+  return result;
+}
