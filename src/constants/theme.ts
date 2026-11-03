@@ -1,36 +1,37 @@
 /**
- * "Mediterranean postcard" design tokens.
- * Light: sand paper, terracotta, sea blue. Dark: the same postcard at night.
+ * Design tokens.
+ * Light: fresh near-white with tomato red and teal. Dark: calm warm charcoal with clay and slate blue.
+ * Fonts: Rubik for titles and numbers, Heebo for text (both cover Hebrew and Latin).
  */
 
 export const Colors = {
   light: {
-    background: '#F3E6CF',
-    backgroundRaised: '#F7EEDD',
-    card: '#FFFAF0',
-    text: '#2B2118',
-    textSecondary: '#7D6A55',
-    line: '#D9C6A6',
-    chip: '#EAD8B8',
-    accent: '#C4572F',
-    onAccent: '#FFF8EE',
-    sea: '#1F5F8B',
-    personA: '#C4572F',
-    personB: '#1F5F8B',
+    background: '#FBFBF6',
+    backgroundRaised: '#F2F1E6',
+    card: '#FFFFFF',
+    text: '#20241F',
+    textSecondary: '#5C6B58',
+    line: '#E1E2D2',
+    chip: '#EAE9DA',
+    accent: '#C23D16',
+    onAccent: '#FFFFFF',
+    sea: '#1C7A8C',
+    personA: '#C23D16',
+    personB: '#1C7A8C',
   },
   dark: {
-    background: '#171A21',
-    backgroundRaised: '#1F232C',
-    card: '#262B36',
-    text: '#F3E9D8',
-    textSecondary: '#A89A86',
-    line: '#3A3F4B',
-    chip: '#2C313C',
-    accent: '#E07A55',
-    onAccent: '#1B1410',
-    sea: '#6FA8D1',
-    personA: '#E07A55',
-    personB: '#6FA8D1',
+    background: '#1C1C1A',
+    backgroundRaised: '#232320',
+    card: '#282826',
+    text: '#E8E4DC',
+    textSecondary: '#A8A49C',
+    line: '#333330',
+    chip: '#30302D',
+    accent: '#C98462',
+    onAccent: '#1C1C1A',
+    sea: '#6FA3AE',
+    personA: '#C98462',
+    personB: '#6FA3AE',
   },
 } as const;
 
@@ -38,13 +39,20 @@ export type ColorScheme = keyof typeof Colors;
 export type Palette = { [K in keyof typeof Colors.light]: string };
 export type ThemeColor = keyof Palette;
 
-/** Frank Ruhl Libre covers Hebrew and Latin. Each weight is its own family in React Native. */
+/** Each weight is its own family in React Native — don't combine these with `fontWeight`. */
 export const Fonts = {
-  regular: 'FrankRuhlLibre_400Regular',
-  medium: 'FrankRuhlLibre_500Medium',
-  bold: 'FrankRuhlLibre_700Bold',
-  black: 'FrankRuhlLibre_900Black',
+  regular: 'Heebo_400Regular',
+  medium: 'Heebo_500Medium',
+  semibold: 'Heebo_600SemiBold',
+  bold: 'Heebo_700Bold',
+  /** Titles. */
+  display: 'Rubik_700Bold',
+  /** Big numbers (ratings, stats) and stamps. */
+  displayHeavy: 'Rubik_800ExtraBold',
 } as const;
+
+/** Extra points added to font sizes for Hebrew, whose letters read smaller at the same size. */
+export const HebrewSizeBoost = 1;
 
 export const Spacing = {
   half: 2,

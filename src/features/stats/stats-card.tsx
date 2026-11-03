@@ -196,7 +196,7 @@ const styles = StyleSheet.create({
     minHeight: 36,
   },
   rank: {
-    fontFamily: Fonts.black,
+    fontFamily: Fonts.displayHeavy,
     fontSize: 18,
     lineHeight: 22,
     minWidth: 14,

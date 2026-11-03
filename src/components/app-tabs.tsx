@@ -17,7 +17,7 @@ export default function AppTabs() {
       iconColor={{ default: theme.textSecondary, selected: theme.accent }}
       labelStyle={{
         default: { color: theme.textSecondary, fontFamily: Fonts.medium },
-        selected: { color: theme.accent, fontFamily: Fonts.bold },
+        selected: { color: theme.accent, fontFamily: Fonts.semibold },
       }}>
       <NativeTabs.Trigger name="index" contentStyle={{ backgroundColor: theme.background }}>
         <NativeTabs.Trigger.Label>{t('tabs.map')}</NativeTabs.Trigger.Label>

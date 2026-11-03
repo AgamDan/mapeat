@@ -1,6 +1,6 @@
 # MapEat — Project Summary and Codex Handoff
 
-Last updated: November 2, 2026
+Last updated: November 4, 2026
 
 Older entries below mention earlier paths (`mapeat-starter/`, `MAPEAT_CODEX_HANDOFF (1).md`, `docs/superpowers/specs/`). They are kept as written; see the November 2 restructure entry for the current locations.
 
@@ -19,6 +19,12 @@ The user asked that work be split across parallel sub-agents where safe. Continu
 9. When splitting, tell the user in one line which agent owns which files.
 
 Expected split value: M2 small (visit form vs. place visit history, after the data layer), M3 high (wishlist / tags / timeline), M4 medium (menu-photo vs. visit-photo UI after one storage layer), M5 low, M6 parallel read-only audits (RTL, error states).
+
+## Restaurant photos and redesign — November 4, 2026
+
+- Place photos: only ~1 in 3,600 OSM venues links a photo, and Google Places needs billing (excluded). User chose: a "See photos on Google Maps" button (free URL scheme), and an "Our photo" header on the place page when there's no public photo (cover, else newest visit photo, else newest menu photo; `getHeaderPhoto` / `useHeaderPhoto`). Pushed as `a54faa2`.
+- Redesign: user disliked Frank Ruhl Libre. Research (Apple text sizes, Hebrew Google Fonts, WCAG-checked palettes) → three mockups in `.superpowers/brainstorm/mapeat-type-color-20261104/` (gitignored). User chose Rubik (titles, numbers) + Heebo (text), Apple sizes with Hebrew +1 pt, light colors "fresh" (C), dark colors "calm" (B). Built in `theme.ts`, `themed-text.tsx`, `_layout.tsx`; `Fonts.black` became `Fonts.displayHeavy`. Splash background colors updated; the app icon still uses the old palette.
+- Verified: typecheck, lint, iOS bundle, web preview in Hebrew dark and English light. **Not yet verified on the iPhone**: native tab label fonts, long Hebrew strings at the larger sizes.
 
 ## Milestone 6 (polish) — November 3, 2026
 

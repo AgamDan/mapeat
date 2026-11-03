@@ -60,7 +60,7 @@ const styles = StyleSheet.create({
     transform: [{ rotate: '4deg' }],
   },
   stampText: {
-    fontFamily: Fonts.black,
+    fontFamily: Fonts.displayHeavy,
     fontSize: 11,
     lineHeight: 13,
     textAlign: 'center',

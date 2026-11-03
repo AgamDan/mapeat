@@ -79,7 +79,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   number: {
-    fontFamily: Fonts.bold,
+    fontFamily: Fonts.display,
     fontSize: 20,
     lineHeight: 26,
     textAlign: 'center',

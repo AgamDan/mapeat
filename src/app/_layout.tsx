@@ -1,10 +1,11 @@
 import {
-  FrankRuhlLibre_400Regular,
-  FrankRuhlLibre_500Medium,
-  FrankRuhlLibre_700Bold,
-  FrankRuhlLibre_900Black,
+  Heebo_400Regular,
+  Heebo_500Medium,
+  Heebo_600SemiBold,
+  Heebo_700Bold,
   useFonts,
-} from '@expo-google-fonts/frank-ruhl-libre';
+} from '@expo-google-fonts/heebo';
+import { Rubik_700Bold, Rubik_800ExtraBold } from '@expo-google-fonts/rubik';
 import { DarkTheme, DefaultTheme, LocaleProvider, Stack, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { SQLiteProvider } from 'expo-sqlite';
@@ -77,10 +78,12 @@ function DatabaseError({ onRetry }: { onRetry: () => void }) {
 function AppShell() {
   const { ready, language } = useSettings();
   const [fontsLoaded, fontError] = useFonts({
-    FrankRuhlLibre_400Regular,
-    FrankRuhlLibre_500Medium,
-    FrankRuhlLibre_700Bold,
-    FrankRuhlLibre_900Black,
+    Heebo_400Regular,
+    Heebo_500Medium,
+    Heebo_600SemiBold,
+    Heebo_700Bold,
+    Rubik_700Bold,
+    Rubik_800ExtraBold,
   });
   const scheme = useResolvedScheme();
   const theme = Colors[scheme];
@@ -110,7 +113,7 @@ function AppShell() {
         regular: { fontFamily: Fonts.regular, fontWeight: 'normal' as const },
         medium: { fontFamily: Fonts.medium, fontWeight: 'normal' as const },
         bold: { fontFamily: Fonts.bold, fontWeight: 'normal' as const },
-        heavy: { fontFamily: Fonts.black, fontWeight: 'normal' as const },
+        heavy: { fontFamily: Fonts.displayHeavy, fontWeight: 'normal' as const },
       },
     };
   }, [scheme, theme]);
@@ -126,7 +129,7 @@ function AppShell() {
             screenOptions={{
               headerTintColor: theme.accent,
               headerStyle: { backgroundColor: theme.backgroundRaised },
-              headerTitleStyle: { fontFamily: Fonts.bold, color: theme.text },
+              headerTitleStyle: { fontFamily: Fonts.display, color: theme.text },
               contentStyle: { backgroundColor: theme.background, direction },
             }}>
             <Stack.Protected guard={language !== null}>

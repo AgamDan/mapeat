@@ -111,7 +111,7 @@ const styles = StyleSheet.create({
     gap: Spacing.half,
   },
   score: {
-    fontFamily: Fonts.black,
+    fontFamily: Fonts.displayHeavy,
     fontSize: 34,
     lineHeight: 40,
   },
