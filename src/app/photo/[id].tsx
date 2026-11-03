@@ -1,5 +1,5 @@
 import { Image } from 'expo-image';
-import { router, Stack, useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { StatusBar } from 'expo-status-bar';
 import { SymbolView } from 'expo-symbols';
@@ -12,7 +12,6 @@ import {
   ScrollView,
   StyleSheet,
   View,
-  type LayoutRectangle,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -102,7 +101,7 @@ export default function PhotoScreen() {
   const insets = useSafeAreaInsets();
   const loaded = usePhotoSet(id);
   const [currentId, setCurrentId] = useState(id);
-  const [frame, setFrame] = useState<LayoutRectangle | null>(null);
+  const [frame, setFrame] = useState<{ width: number; height: number } | null>(null);
   const [busy, setBusy] = useState(false);
   // Set while this screen deletes the photo, so it closes instead of flashing "not found".
   const [closing, setClosing] = useState(false);
@@ -177,7 +176,16 @@ export default function PhotoScreen() {
     );
     body = (
       <>
-        <View style={styles.pager} onLayout={(event) => setFrame(event.nativeEvent.layout)}>
+        <View
+          style={styles.pager}
+          onLayout={(event) => {
+            const { width, height } = event.nativeEvent.layout;
+            const size = { width: Math.round(width), height: Math.round(height) };
+            // Only real size changes re-render; repeated layout passes with the same size are ignored.
+            setFrame((previous) =>
+              previous && previous.width === size.width && previous.height === size.height ? previous : size,
+            );
+          }}>
           {frame ? (
             <FlatList
               data={photos}
@@ -235,7 +243,6 @@ export default function PhotoScreen() {
 
   return (
     <View style={[styles.screen, { backgroundColor: palette.background }]}>
-      <Stack.Screen options={{ headerShown: false }} />
       <StatusBar style="light" />
       <View style={[styles.topBar, { paddingTop: insets.top + Spacing.two }]}>
         <Pressable

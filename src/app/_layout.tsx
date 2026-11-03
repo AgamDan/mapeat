@@ -116,7 +116,9 @@ function AppShell() {
               <Stack.Screen name="tags" options={{ presentation: 'modal', title: t('tags.title') }} />
               <Stack.Screen
                 name="photo/[id]"
-                options={{ presentation: 'fullScreenModal', title: t('photos.viewerTitle') }}
+                // A regular modal (like the visit forms): a full-screen modal over the place sheet
+                // misbehaved. Header hidden up front so the close button never jumps.
+                options={{ presentation: 'modal', headerShown: false, title: t('photos.viewerTitle') }}
               />
               <Stack.Screen
                 name="map-filters"
