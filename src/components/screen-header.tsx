@@ -3,13 +3,25 @@ import { SymbolView } from 'expo-symbols';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { BrandMark } from '@/components/brand-mark';
 import { ThemedText } from '@/components/themed-text';
 import { Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { useT } from '@/i18n/i18n';
 
-/** Tab screen header: brand-colored title and a settings button at the end. */
-export function ScreenHeader({ title, floating = false }: { title: string; floating?: boolean }) {
+/**
+ * Tab screen header: brand-colored title and a settings button at the end.
+ * With `brand`, the title is shown next to the MapEat mark.
+ */
+export function ScreenHeader({
+  title,
+  floating = false,
+  brand = false,
+}: {
+  title: string;
+  floating?: boolean;
+  brand?: boolean;
+}) {
   const theme = useTheme();
   const t = useT();
   const insets = useSafeAreaInsets();
@@ -20,7 +32,8 @@ export function ScreenHeader({ title, floating = false }: { title: string; float
     <View
       pointerEvents="box-none"
       style={[styles.header, { paddingTop: insets.top + Spacing.two }]}>
-      <View style={floatingSurface}>
+      <View style={[floatingSurface, brand && styles.brand]} accessibilityRole="header">
+        {brand ? <BrandMark size={34} /> : null}
         <ThemedText type="title" themeColor="accent" style={styles.title}>
           {title}
         </ThemedText>
@@ -57,6 +70,11 @@ const styles = StyleSheet.create({
   },
   title: {
     flexShrink: 1,
+  },
+  brand: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.two,
   },
   floating: {
     paddingHorizontal: Spacing.three,

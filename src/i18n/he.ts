@@ -8,7 +8,6 @@ export const he: Translations = {
   'tabs.map': 'מפה',
   'tabs.timeline': 'ציר זמן',
   'tabs.wishlist': 'משאלות',
-  'map.title': 'מפה',
   'map.loading': 'טוען מקומות…',
   'map.zoomIn': 'התקרבו כדי לראות מקומות',
   'map.error': 'לא הצלחנו לטעון מקומות כאן. בדקו את החיבור ונסו שוב.',

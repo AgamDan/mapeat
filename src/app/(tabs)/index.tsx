@@ -156,7 +156,7 @@ export default function MapScreen() {
       />
 
       <View pointerEvents="box-none" style={styles.top}>
-        <ScreenHeader title={t('map.title')} floating />
+        <ScreenHeader title={t('appName')} floating brand />
         {note ? (
           <View style={[styles.note, { backgroundColor: theme.card }]}>
             {showLoading && !locationDenied ? (

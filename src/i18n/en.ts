@@ -6,7 +6,6 @@ export const en = {
   'tabs.map': 'Map',
   'tabs.timeline': 'Timeline',
   'tabs.wishlist': 'Wishlist',
-  'map.title': 'Map',
   'map.loading': 'Loading places…',
   'map.zoomIn': 'Zoom in to see places',
   'map.error': "Couldn't load places here. Check the connection and try again.",
