@@ -29,6 +29,11 @@ export default function AppTabs() {
           md="menu_book"
         />
       </NativeTabs.Trigger>
+
+      <NativeTabs.Trigger name="wishlist" contentStyle={{ backgroundColor: theme.background }}>
+        <NativeTabs.Trigger.Label>{t('tabs.wishlist')}</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Icon sf={{ default: 'heart', selected: 'heart.fill' }} md="favorite" />
+      </NativeTabs.Trigger>
     </NativeTabs>
   );
 }

@@ -12,7 +12,7 @@ import { venueNames } from '@/features/catalog/labels';
 import type { Venue } from '@/features/catalog/types';
 import { usePeople } from '@/features/people/use-people';
 import { reviewDraftKey, useVisitDraft, type VisitDraft } from '@/features/visits/drafts';
-import { closeVisitForm, VisitForm, type ValidVisitDraft } from '@/features/visits/visit-form';
+import { useCloseVisitForm, VisitForm, type ValidVisitDraft } from '@/features/visits/visit-form';
 import { useTheme } from '@/hooks/use-theme';
 import type { TranslationKey } from '@/i18n/en';
 import { useLanguage, useT } from '@/i18n/i18n';
@@ -27,6 +27,7 @@ export default function ReviewScreen() {
   const { id: visitId = '', author: authorParam } = useLocalSearchParams<{ id: string; author: string }>();
   const author = isPersonId(authorParam) ? authorParam : null;
   const db = useSQLiteContext();
+  const closeForm = useCloseVisitForm();
   const t = useT();
   const theme = useTheme();
   const { language } = useLanguage();
@@ -115,13 +116,13 @@ export default function ReviewScreen() {
     // ignored by its submission id and a re-edit conflicts on `updatedAt`.
     await clear().catch(() => {});
     setWriter(valid.writer);
-    closeVisitForm();
+    closeForm();
     return null;
   }
 
   async function discard() {
     await clear();
-    closeVisitForm();
+    closeForm();
   }
 
   return (

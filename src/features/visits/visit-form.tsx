@@ -1,5 +1,5 @@
-import { router } from 'expo-router';
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { router, useNavigation } from 'expo-router';
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { ActivityIndicator, Alert, Keyboard, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 
 import { DateField } from '@/components/date-field';
@@ -38,10 +38,18 @@ type VisitFormProps = {
   onSubmit: (draft: ValidVisitDraft) => Promise<TranslationKey | null>;
 };
 
-/** Closes the visit/review modal (or goes to the map when it was opened directly). */
-export function closeVisitForm() {
-  if (router.canGoBack()) router.back();
-  else router.replace('/');
+/**
+ * Returns a function that closes this visit/review modal (or goes to the map when it was opened
+ * directly). It does nothing if the user already swiped the modal away while a save was running;
+ * otherwise `router.back()` would close the screen underneath.
+ */
+export function useCloseVisitForm() {
+  const navigation = useNavigation();
+  return useCallback(() => {
+    if (!navigation.isFocused()) return;
+    if (router.canGoBack()) router.back();
+    else router.replace('/');
+  }, [navigation]);
 }
 
 /** The shared body of the new-visit and review screens. */

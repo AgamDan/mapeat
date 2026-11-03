@@ -82,6 +82,23 @@ const MIGRATIONS: readonly string[] = [
     UNIQUE (visit_id, author_id)
   );
   `,
+  `
+  ALTER TABLE journal_places ADD COLUMN wishlist_added_at INTEGER;
+  UPDATE journal_places SET wishlist_added_at = updated_at WHERE wishlist = 1;
+  CREATE INDEX journal_places_wishlist ON journal_places (wishlist, wishlist_added_at DESC);
+  CREATE TABLE tags (
+    id TEXT PRIMARY KEY NOT NULL,
+    name TEXT NOT NULL COLLATE NOCASE UNIQUE,
+    created_at INTEGER NOT NULL
+  );
+  CREATE TABLE place_tags (
+    place_id TEXT NOT NULL REFERENCES journal_places (place_id),
+    tag_id TEXT NOT NULL REFERENCES tags (id),
+    created_at INTEGER NOT NULL,
+    PRIMARY KEY (place_id, tag_id)
+  );
+  CREATE INDEX place_tags_tag ON place_tags (tag_id);
+  `,
 ];
 
 /** Opens the app database: runs migrations, then loads the built-in catalog if it changed. */

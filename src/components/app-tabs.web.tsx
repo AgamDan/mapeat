@@ -23,6 +23,9 @@ export default function AppTabs() {
             <TabTrigger name="timeline" href="/timeline" asChild>
               <TabButton>{t('tabs.timeline')}</TabButton>
             </TabTrigger>
+            <TabTrigger name="wishlist" href="/wishlist" asChild>
+              <TabButton>{t('tabs.wishlist')}</TabButton>
+            </TabTrigger>
           </View>
         </View>
       </TabList>

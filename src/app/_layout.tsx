@@ -113,6 +113,16 @@ function AppShell() {
                 name="visit/review"
                 options={{ presentation: 'modal', title: t('visit.reviewTitle') }}
               />
+              <Stack.Screen name="tags" options={{ presentation: 'modal', title: t('tags.title') }} />
+              <Stack.Screen
+                name="map-filters"
+                options={{
+                  presentation: 'formSheet',
+                  sheetAllowedDetents: [0.75, 1],
+                  sheetGrabberVisible: true,
+                  title: t('filters.title'),
+                }}
+              />
             </Stack.Protected>
             <Stack.Protected guard={language === null}>
               <Stack.Screen name="welcome" options={{ headerShown: false }} />

@@ -45,3 +45,18 @@ export function formatVisitDate(value: LocalDate, language: Language, style: 'lo
     new Date(Date.UTC(y, m - 1, d)),
   );
 }
+
+/** `YYYY-MM` month key of a calendar date, for grouping (e.g. timeline sections). */
+export function monthKey(value: LocalDate) {
+  return value.slice(0, 7);
+}
+
+/** e.g. "October 2026" / "אוקטובר 2026" for a `YYYY-MM` month key. */
+export function formatMonth(key: string, language: Language) {
+  const [y, m] = key.split('-').map(Number);
+  return new Intl.DateTimeFormat(language === 'he' ? 'he-IL' : 'en-GB', {
+    month: 'long',
+    year: 'numeric',
+    timeZone: 'UTC',
+  }).format(new Date(Date.UTC(y, m - 1, 1)));
+}

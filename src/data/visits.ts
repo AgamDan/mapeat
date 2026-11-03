@@ -142,7 +142,7 @@ function toVisits(visitRows: VisitRow[], reviewRows: ReviewRow[]): Visit[] {
 
 /**
  * Saves a new visit with its first review in one transaction. Creates the journal place if
- * needed and, for the place's first visit, takes it off the wishlist.
+ * needed, takes the place off the wishlist on its first visit, and clears "want to go back".
  */
 export async function saveNewVisit(db: SQLiteDatabase, input: NewVisitInput): Promise<{ visitId: string }> {
   validateDate(input.visitDate);
@@ -174,6 +174,11 @@ export async function saveNewVisit(db: SQLiteDatabase, input: NewVisitInput): Pr
         [now, input.placeId],
       );
     }
+    // Visiting again fulfils "want to go back".
+    await txn.runAsync(
+      'UPDATE journal_places SET want_return = 0, updated_at = ? WHERE place_id = ? AND want_return = 1',
+      [now, input.placeId],
+    );
     await txn.runAsync(
       `INSERT INTO visits (id, place_id, visit_date, submission_id, created_by, created_at, updated_at)
        VALUES (?, ?, ?, ?, ?, ?, ?)`,

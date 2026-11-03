@@ -3,7 +3,8 @@ import type { SQLiteDatabase } from 'expo-sqlite';
 import { writeTransaction } from '@/data/write-queue';
 import { isVenueKind, type Bounds, type Venue } from '@/features/catalog/types';
 
-type PlaceRow = {
+/** A `places` table row as returned by `SELECT p.*`. */
+export type PlaceRow = {
   id: string;
   osm_type: string;
   osm_id: number;
@@ -23,7 +24,7 @@ type PlaceRow = {
   fetched_at: number;
 };
 
-function toVenue(row: PlaceRow): Venue | null {
+export function toVenue(row: PlaceRow): Venue | null {
   if (!isVenueKind(row.kind)) return null;
   const osmType = row.osm_type === 'way' || row.osm_type === 'relation' ? row.osm_type : 'node';
   return {

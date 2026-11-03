@@ -11,7 +11,7 @@ import { venueNames } from '@/features/catalog/labels';
 import type { Venue } from '@/features/catalog/types';
 import { usePeople } from '@/features/people/use-people';
 import { newVisitDraftKey, useVisitDraft, type VisitDraft } from '@/features/visits/drafts';
-import { closeVisitForm, VisitForm, type ValidVisitDraft } from '@/features/visits/visit-form';
+import { useCloseVisitForm, VisitForm, type ValidVisitDraft } from '@/features/visits/visit-form';
 import { useTheme } from '@/hooks/use-theme';
 import { useLanguage, useT } from '@/i18n/i18n';
 import { todayLocalDate } from '@/lib/dates';
@@ -21,6 +21,7 @@ import { useSettings } from '@/settings/settings-provider';
 export default function NewVisitScreen() {
   const { placeId = '' } = useLocalSearchParams<{ placeId: string }>();
   const db = useSQLiteContext();
+  const closeForm = useCloseVisitForm();
   const t = useT();
   const theme = useTheme();
   const { language } = useLanguage();
@@ -87,13 +88,13 @@ export default function NewVisitScreen() {
     // Saved. A draft left behind by a failed removal could only resubmit this same visit (idempotent).
     await clear().catch(() => {});
     setWriter(valid.writer);
-    closeVisitForm();
+    closeForm();
     return null;
   }
 
   async function discard() {
     await clear();
-    closeVisitForm();
+    closeForm();
   }
 
   return (
