@@ -7,12 +7,24 @@ import { deletePhotoFiles } from '@/features/photos/photo-files';
 import { isLocalDate, type LocalDate } from '@/lib/dates';
 import { newId } from '@/lib/ids';
 
+/** Optional extra ratings next to the main one, in display order. */
+export const SUB_RATING_KEYS = ['food', 'service', 'vibe'] as const;
+export type SubRatingKey = (typeof SUB_RATING_KEYS)[number];
+/** Each value is a whole number 1–10, or `null` when not rated (never 0). */
+export type SubRatings = Record<SubRatingKey, number | null>;
+
+export function emptySubRatings(): SubRatings {
+  return { food: null, service: null, vibe: null };
+}
+
 export type VisitReview = {
   id: string;
   visitId: string;
   authorId: PersonId;
   /** Whole number 1–10. A missing review is absent, never 0. */
   rating: number;
+  /** Optional Food / Service / Vibe ratings. */
+  sub: SubRatings;
   notes: string | null;
   lastEditorId: PersonId;
   createdAt: number;
@@ -44,6 +56,8 @@ export type PlaceJournal = {
   visits: Visit[];
   /** Each person's own average over this place's visits; `null` if they never reviewed it. */
   averages: Record<PersonId, number | null>;
+  /** Each person's own average per extra rating, over their reviews that have it; `null` if none. */
+  subAverages: Record<PersonId, SubRatings>;
 };
 
 export type NewVisitInput = {
@@ -53,6 +67,8 @@ export type NewVisitInput = {
   visitDate: LocalDate;
   authorId: PersonId;
   rating: number;
+  /** Omitted means none. */
+  sub?: SubRatings;
   notes: string | null;
 };
 
@@ -64,6 +80,8 @@ export type ReviewInput = {
   /** Who is making this change ("Writing as"); either person may edit either review. */
   editorId: PersonId;
   rating: number;
+  /** Omitted means none; an edit replaces all three values. */
+  sub?: SubRatings;
   notes: string | null;
   /** `updatedAt` the editor started from, or `null` when adding. A mismatch throws `ReviewConflictError`. */
   expectedUpdatedAt: number | null;
@@ -77,6 +95,17 @@ function validateRating(rating: number) {
   if (!Number.isInteger(rating) || rating < 1 || rating > 10) {
     throw new JournalValidationError(`Rating must be a whole number 1–10, got ${rating}`);
   }
+}
+
+/** Checks the extra ratings and returns them as `[food, service, vibe]` column values. */
+function subValues(sub: SubRatings | undefined): (number | null)[] {
+  return SUB_RATING_KEYS.map((key) => {
+    const value = sub?.[key] ?? null;
+    if (value !== null && (!Number.isInteger(value) || value < 1 || value > 10)) {
+      throw new JournalValidationError(`${key} must be a whole number 1–10, got ${value}`);
+    }
+    return value;
+  });
 }
 
 function validateDate(visitDate: string) {
@@ -93,6 +122,9 @@ type ReviewRow = {
   visit_id: string;
   author_id: string;
   rating: number;
+  food: number | null;
+  service: number | null;
+  vibe: number | null;
   notes: string | null;
   last_editor_id: string;
   created_at: number;
@@ -115,6 +147,7 @@ function toReview(row: ReviewRow): VisitReview | null {
     visitId: row.visit_id,
     authorId: row.author_id,
     rating: row.rating,
+    sub: { food: row.food ?? null, service: row.service ?? null, vibe: row.vibe ?? null },
     notes: row.notes,
     lastEditorId: isPersonId(row.last_editor_id) ? row.last_editor_id : row.author_id,
     createdAt: row.created_at,
@@ -148,6 +181,7 @@ function toVisits(visitRows: VisitRow[], reviewRows: ReviewRow[]): Visit[] {
 export async function saveNewVisit(db: SQLiteDatabase, input: NewVisitInput): Promise<{ visitId: string }> {
   validateDate(input.visitDate);
   validateRating(input.rating);
+  const sub = subValues(input.sub);
   let visitId = '';
   await writeTransaction(db, async (txn) => {
     const existing = await txn.getFirstAsync<{ id: string }>(
@@ -187,9 +221,9 @@ export async function saveNewVisit(db: SQLiteDatabase, input: NewVisitInput): Pr
     );
     await txn.runAsync(
       `INSERT INTO visit_reviews
-       (id, visit_id, author_id, rating, notes, submission_id, last_editor_id, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [newId(), visitId, input.authorId, input.rating, cleanNotes(input.notes), input.submissionId, input.authorId, now, now],
+       (id, visit_id, author_id, rating, food, service, vibe, notes, submission_id, last_editor_id, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [newId(), visitId, input.authorId, input.rating, ...sub, cleanNotes(input.notes), input.submissionId, input.authorId, now, now],
     );
   });
   notifyJournalChanged();
@@ -199,6 +233,7 @@ export async function saveNewVisit(db: SQLiteDatabase, input: NewVisitInput): Pr
 /** Adds `authorId`'s review to an existing visit, or edits it if it already exists. */
 export async function saveReview(db: SQLiteDatabase, input: ReviewInput): Promise<void> {
   validateRating(input.rating);
+  const sub = subValues(input.sub);
   await writeTransaction(db, async (txn) => {
     const visit = await txn.getFirstAsync<{ id: string }>('SELECT id FROM visits WHERE id = ?', [input.visitId]);
     if (!visit) throw new VisitNotFoundError(input.visitId);
@@ -218,16 +253,16 @@ export async function saveReview(db: SQLiteDatabase, input: ReviewInput): Promis
         throw new ReviewConflictError(current.id);
       }
       await txn.runAsync(
-        `UPDATE visit_reviews SET rating = ?, notes = ?, last_editor_id = ?, updated_at = ? WHERE id = ?`,
-        [input.rating, cleanNotes(input.notes), input.editorId, Math.max(now, current.updated_at + 1), current.id],
+        `UPDATE visit_reviews SET rating = ?, food = ?, service = ?, vibe = ?, notes = ?, last_editor_id = ?, updated_at = ? WHERE id = ?`,
+        [input.rating, ...sub, cleanNotes(input.notes), input.editorId, Math.max(now, current.updated_at + 1), current.id],
       );
     } else {
       if (input.expectedUpdatedAt !== null) throw new ReviewConflictError(input.visitId);
       await txn.runAsync(
         `INSERT INTO visit_reviews
-         (id, visit_id, author_id, rating, notes, submission_id, last_editor_id, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [newId(), input.visitId, input.authorId, input.rating, cleanNotes(input.notes), input.submissionId, input.editorId, now, now],
+         (id, visit_id, author_id, rating, food, service, vibe, notes, submission_id, last_editor_id, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [newId(), input.visitId, input.authorId, input.rating, ...sub, cleanNotes(input.notes), input.submissionId, input.editorId, now, now],
       );
     }
     await txn.runAsync('UPDATE visits SET updated_at = ? WHERE id = ?', [now, input.visitId]);
@@ -345,9 +380,14 @@ export async function getPlaceJournal(db: SQLiteDatabase, placeId: string): Prom
     [placeId],
   );
   const visits = toVisits(visitRows, reviewRows);
-  const average = (person: PersonId) => {
-    const ratings = visits.flatMap((visit) => visit.reviews[person]?.rating ?? []);
-    return ratings.length ? ratings.reduce((sum, r) => sum + r, 0) / ratings.length : null;
+  const mean = (values: number[]) => (values.length ? values.reduce((sum, r) => sum + r, 0) / values.length : null);
+  const average = (person: PersonId) => mean(visits.flatMap((visit) => visit.reviews[person]?.rating ?? []));
+  const subAverages = (person: PersonId): SubRatings => {
+    const result = emptySubRatings();
+    for (const key of SUB_RATING_KEYS) {
+      result[key] = mean(visits.flatMap((visit) => visit.reviews[person]?.sub[key] ?? []));
+    }
+    return result;
   };
   return {
     journalPlace: place
@@ -361,5 +401,6 @@ export async function getPlaceJournal(db: SQLiteDatabase, placeId: string): Prom
       : null,
     visits,
     averages: { a: average('a'), b: average('b') },
+    subAverages: { a: subAverages('a'), b: subAverages('b') },
   };
 }

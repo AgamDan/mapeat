@@ -8,6 +8,7 @@ import type { Person } from '@/data/people';
 import type { Photo } from '@/data/photos';
 import type { Visit, VisitReview } from '@/data/visits';
 import { VisitPhotoStrip } from '@/features/photos/visit-photo-strip';
+import { formatSubRatings } from '@/features/visits/sub-ratings';
 import { useTheme } from '@/hooks/use-theme';
 import { useLanguage, useT } from '@/i18n/i18n';
 import { formatVisitDate } from '@/lib/dates';
@@ -146,6 +147,7 @@ function ReviewHalf({
     review.lastEditorId !== review.authorId
       ? people.find((candidate) => candidate.id === review.lastEditorId)
       : undefined;
+  const subLine = formatSubRatings(review.sub, t);
 
   return (
     <View style={styles.halfContent}>
@@ -161,6 +163,11 @@ function ReviewHalf({
           /10
         </ThemedText>
       </View>
+      {subLine ? (
+        <ThemedText type="small" themeColor="textSecondary">
+          {subLine}
+        </ThemedText>
+      ) : null}
       {review.notes ? <ThemedText>{review.notes}</ThemedText> : null}
       {editor ? (
         <ThemedText type="small" themeColor="textSecondary">

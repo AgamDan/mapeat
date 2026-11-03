@@ -9,6 +9,7 @@ import { ThemedText } from '@/components/themed-text';
 import { WriterSwitch } from '@/components/writer-switch';
 import { Fonts, MaxContentWidth, Radius, Spacing } from '@/constants/theme';
 import { isValidRating, type VisitDraft } from '@/features/visits/drafts';
+import { SubRatingsField } from '@/features/visits/sub-ratings-field';
 import { useTheme } from '@/hooks/use-theme';
 import type { TranslationKey } from '@/i18n/en';
 import { useLanguage, useT } from '@/i18n/i18n';
@@ -160,6 +161,12 @@ export function VisitForm({
             onChange({ rating });
             if (ratingMissing) setError(null);
           }}
+        />
+        <SubRatingsField
+          value={draft.sub}
+          onChange={(sub) => onChange({ sub })}
+          color={ratingColor}
+          disabled={saving}
         />
         <View style={styles.field}>
           <ThemedText type="smallBold" themeColor="textSecondary">

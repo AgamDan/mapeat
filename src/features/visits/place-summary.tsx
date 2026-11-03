@@ -4,7 +4,9 @@ import { ThemedText } from '@/components/themed-text';
 import { Fonts, Radius, Spacing } from '@/constants/theme';
 import type { Person, PersonId } from '@/data/people';
 import type { Photo } from '@/data/photos';
+import { SUB_RATING_KEYS, type SubRatings } from '@/data/visits';
 import { PhotoThumb } from '@/features/photos/photo-thumb';
+import { formatSubRatings, SUB_RATING_LABELS } from '@/features/visits/sub-ratings';
 import { useTheme } from '@/hooks/use-theme';
 import { useT } from '@/i18n/i18n';
 
@@ -16,6 +18,8 @@ export function formatAverage(value: number) {
 type PlaceSummaryProps = {
   people: Person[];
   averages: Record<PersonId, number | null>;
+  /** Each person's own extra-rating averages (`PlaceJournal.subAverages`), shown under their main average. */
+  subAverages?: Record<PersonId, SubRatings>;
   visitCount: number;
   /** The couple's private journal cover, if one was chosen (never the public profile photo). */
   cover?: Photo | null;
@@ -24,7 +28,7 @@ type PlaceSummaryProps = {
 const COVER_SIZE = 56;
 
 /** Each person's own average for a place, side by side in their ink — never a combined score. */
-export function PlaceSummary({ people, averages, visitCount, cover = null }: PlaceSummaryProps) {
+export function PlaceSummary({ people, averages, subAverages, visitCount, cover = null }: PlaceSummaryProps) {
   const theme = useTheme();
   const t = useT();
 
@@ -52,12 +56,14 @@ export function PlaceSummary({ people, averages, visitCount, cover = null }: Pla
       <View style={styles.row}>
         {people.map((person, index) => {
           const average = averages[person.id];
+          const sub = subAverages?.[person.id];
+          const subLine = sub ? formatSubRatings(sub, t, formatAverage) : '';
           const ink = theme[person.color];
           return (
             <View
               key={person.id}
               accessible
-              accessibilityLabel={`${person.name}, ${t('place.average')}: ${average === null ? '—' : formatAverage(average)}`}
+              accessibilityLabel={`${person.name}, ${t('place.average')}: ${average === null ? '—' : formatAverage(average)}${subLine ? `, ${subLine}` : ''}`}
               style={[
                 styles.person,
                 index > 0 && { borderStartWidth: StyleSheet.hairlineWidth, borderColor: theme.line },
@@ -72,6 +78,16 @@ export function PlaceSummary({ people, averages, visitCount, cover = null }: Pla
               ) : (
                 <ThemedText style={[styles.score, { color: ink }]}>{formatAverage(average)}</ThemedText>
               )}
+              {sub
+                ? SUB_RATING_KEYS.map((key) => {
+                    const value = sub[key];
+                    return value === null ? null : (
+                      <ThemedText key={key} type="small" themeColor="textSecondary">
+                        {`${t(SUB_RATING_LABELS[key])} ${formatAverage(value)}`}
+                      </ThemedText>
+                    );
+                  })
+                : null}
             </View>
           );
         })}

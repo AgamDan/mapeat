@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { AppState } from 'react-native';
 
 import { isPersonId, type PersonId } from '@/data/people';
+import { emptySubRatings, SUB_RATING_KEYS, type SubRatings } from '@/data/visits';
 import { isLocalDate, type LocalDate } from '@/lib/dates';
 
 /** An unsaved visit or review, kept on the phone until it is saved or explicitly discarded. */
@@ -14,6 +15,8 @@ export type VisitDraft = {
   writer: PersonId;
   /** Whole number 1–10, or `null` until chosen (never 0). */
   rating: number | null;
+  /** Optional Food / Service / Vibe ratings (each 1–10 or `null`). */
+  sub: SubRatings;
   notes: string;
   /**
    * Review drafts only: the review's `updatedAt` this draft started from (`null` when adding).
@@ -37,7 +40,18 @@ export function isValidRating(value: unknown): value is number {
   return typeof value === 'number' && Number.isInteger(value) && value >= 1 && value <= 10;
 }
 
-function parseDraft(raw: string | null): VisitDraft | null {
+/** Drafts saved before the extra ratings existed have no `sub`; anything invalid becomes `null`. */
+function parseSub(value: unknown): SubRatings {
+  const sub = emptySubRatings();
+  if (typeof value !== 'object' || value === null) return sub;
+  for (const key of SUB_RATING_KEYS) {
+    const rating = (value as Record<string, unknown>)[key];
+    if (isValidRating(rating)) sub[key] = rating;
+  }
+  return sub;
+}
+
+export function parseDraft(raw: string | null): VisitDraft | null {
   if (!raw) return null;
   try {
     const value = JSON.parse(raw) as Partial<VisitDraft>;
@@ -56,6 +70,7 @@ function parseDraft(raw: string | null): VisitDraft | null {
       visitDate: value.visitDate,
       writer: value.writer,
       rating: value.rating,
+      sub: parseSub(value.sub),
       notes: value.notes,
     };
     if (value.baseUpdatedAt !== undefined) {
