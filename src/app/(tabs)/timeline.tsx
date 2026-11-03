@@ -1,3 +1,4 @@
+import { router } from 'expo-router';
 import { useState } from 'react';
 import { ActivityIndicator, Pressable, SectionList, StyleSheet, View } from 'react-native';
 
@@ -9,8 +10,11 @@ import { MaxContentWidth, Radius, Spacing } from '@/constants/theme';
 import type { TimelineVisit } from '@/data/journal';
 import type { PersonId } from '@/data/people';
 import { venueNames } from '@/features/catalog/labels';
+import { EmptyState } from '@/features/empty/empty-state';
 import { usePeople } from '@/features/people/use-people';
 import { usePhotosForVisits } from '@/features/photos/use-photos-for-visits';
+import { StatsCard } from '@/features/stats/stats-card';
+import { useStats } from '@/features/stats/use-stats';
 import { MonthHeader } from '@/features/timeline/month-header';
 import { useTimeline } from '@/features/timeline/use-timeline';
 import { VisitCard } from '@/features/visits/visit-card';
@@ -43,6 +47,7 @@ export default function TimelineScreen() {
   const { items, loading, error, hasMore, loadingMore, moreError, loadMore, retry } = useTimeline(person);
   const photosFor = usePhotosForVisits(items.map((item) => item.id));
   const sections = groupByMonth(items);
+  const stats = useStats();
 
   const choices: Choice<Filter>[] = [
     { value: 'all', label: t('timeline.filterAll') },
@@ -60,6 +65,7 @@ export default function TimelineScreen() {
 
   const header = (
     <View style={styles.listHeader}>
+      {stats ? <StatsCard stats={stats} people={people} /> : null}
       <ChoiceGroup label={t('timeline.filterLabel')} choices={choices} value={filter} onChange={setFilter} />
       {error && items.length > 0 ? (
         <View style={styles.inlineError}>
@@ -84,10 +90,16 @@ export default function TimelineScreen() {
       </ThemedText>
     </Postcard>
   ) : (
-    <Postcard style={styles.message}>
-      <ThemedText type="subtitle">{t('timeline.emptyTitle')}</ThemedText>
-      <ThemedText themeColor="textSecondary">{t('timeline.emptyBody')}</ThemedText>
-    </Postcard>
+    <EmptyState
+      symbol={{ ios: 'fork.knife', android: 'restaurant', web: 'restaurant' }}
+      title={t('timeline.emptyTitle')}
+      body={t('timeline.emptyBody')}
+      action={{
+        label: t('tabs.map'),
+        symbol: { ios: 'map', android: 'map', web: 'map' },
+        onPress: () => router.navigate('/'),
+      }}
+    />
   );
 
   const footer = loadingMore ? (

@@ -1,10 +1,11 @@
+import { router } from 'expo-router';
 import { ActivityIndicator, Pressable, SectionList, StyleSheet, View } from 'react-native';
 
-import { Postcard } from '@/components/postcard';
 import { ScreenHeader } from '@/components/screen-header';
 import { ThemedText } from '@/components/themed-text';
 import { MaxContentWidth, Radius, Spacing } from '@/constants/theme';
 import type { ListedPlace } from '@/data/journal';
+import { EmptyState } from '@/features/empty/empty-state';
 import { useWishlist } from '@/features/wishlist/use-wishlist';
 import { WishlistRow } from '@/features/wishlist/wishlist-row';
 import { useTheme } from '@/hooks/use-theme';
@@ -61,10 +62,16 @@ export default function WishlistScreen() {
           ) : undefined
         }
         ListEmptyComponent={
-          <Postcard>
-            <ThemedText type="subtitle">{t('wishlist.emptyTitle')}</ThemedText>
-            <ThemedText themeColor="textSecondary">{t('wishlist.emptyBody')}</ThemedText>
-          </Postcard>
+          <EmptyState
+            symbol={{ ios: 'heart', android: 'favorite', web: 'favorite' }}
+            title={t('wishlist.emptyTitle')}
+            body={t('wishlist.emptyBody')}
+            action={{
+              label: t('tabs.map'),
+              symbol: { ios: 'map', android: 'map', web: 'map' },
+              onPress: () => router.navigate('/'),
+            }}
+          />
         }
         renderSectionHeader={({ section }) => (
           <ThemedText type="subtitle" accessibilityRole="header" style={styles.sectionHeader}>
