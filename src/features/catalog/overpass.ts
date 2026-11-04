@@ -83,8 +83,17 @@ async function fetchFrom(endpoint: string, query: string) {
   }
 }
 
+/** Every Overpass request in the app runs one at a time (public servers rate-limit). */
+let queue: Promise<unknown> = Promise.resolve();
+
 /** Fetch restaurant-like venues inside `bounds`, falling back to the next instance on failure. */
-export async function fetchVenues(bounds: Bounds): Promise<Venue[]> {
+export function fetchVenues(bounds: Bounds): Promise<Venue[]> {
+  const run = queue.then(() => fetchVenuesNow(bounds));
+  queue = run.catch(() => {});
+  return run;
+}
+
+async function fetchVenuesNow(bounds: Bounds): Promise<Venue[]> {
   const query = buildQuery(bounds);
   let lastError: unknown;
   for (const [index, endpoint] of ENDPOINTS.entries()) {

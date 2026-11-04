@@ -243,6 +243,7 @@ export const en = {
   'explorer.neighborhoods': 'Neighborhoods',
   'explorer.places': '{count} places',
   'explorer.placesOne': '1 place',
+  'explorer.tally': '{cities} cities · {neighborhoods} neighborhoods',
   'explorer.loadFailed': "Couldn't load your map progress.",
   'explorer.visits': '{count} visits',
   'explorer.empty': 'Visit a place to start filling your map.',

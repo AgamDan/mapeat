@@ -15,7 +15,7 @@ const VERDICT_CHIP: Record<
 > = {
   orderAgain: { label: 'dishes.orderAgain', background: 'sea', text: 'onAccent' },
   mixed: { label: 'dishes.mixed', background: 'chip', text: 'text' },
-  skip: { label: 'dishes.skip', background: 'accent', text: 'onAccent' },
+  skip: { label: 'dishes.skip', background: 'chip', text: 'textSecondary' },
 };
 
 /**
@@ -59,7 +59,13 @@ function DishRow({
   const voters = people.filter((person) => dish.latest[person.id] !== undefined);
 
   return (
-    <View style={[styles.row, !first && { borderTopColor: theme.line, borderTopWidth: StyleSheet.hairlineWidth }]}>
+    <View
+      style={[
+        styles.row,
+        !first && { borderTopColor: theme.line, borderTopWidth: StyleSheet.hairlineWidth },
+        // "Skip next time" dishes are sorted last and dimmed, so the good ones stand out.
+        dish.verdict === 'skip' && styles.dimmed,
+      ]}>
       <View style={styles.titleRow}>
         <ThemedText type="defaultBold" style={styles.name}>
           {dish.name}
@@ -110,6 +116,9 @@ const styles = StyleSheet.create({
   row: {
     gap: Spacing.one,
     paddingVertical: Spacing.three,
+  },
+  dimmed: {
+    opacity: 0.55,
   },
   titleRow: {
     flexDirection: 'row',

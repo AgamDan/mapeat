@@ -10,6 +10,7 @@ import type { Person } from '@/data/people';
 import type { Disagreement, JournalStats, PersonTopPlace } from '@/data/stats';
 import { KIND_LABEL_KEYS, venueNames } from '@/features/catalog/labels';
 import type { Venue } from '@/features/catalog/types';
+import { useExplorer } from '@/features/explorer/use-explorer';
 import { formatAverage } from '@/features/stats/use-stats';
 import { useTheme } from '@/hooks/use-theme';
 import { useLanguage, useT } from '@/i18n/i18n';
@@ -34,6 +35,7 @@ function usePlaceName() {
 export function StatsCard({ stats, people }: StatsCardProps) {
   const t = useT();
   const theme = useTheme();
+  const explorer = useExplorer();
   const [expanded, setExpanded] = useState(false);
   const hasVisits = people.some((person) => stats.topByPerson[person.id].length > 0);
 
@@ -101,9 +103,14 @@ export function StatsCard({ stats, people }: StatsCardProps) {
         onPress={() => router.push('/explorer')}
         style={({ pressed }) => [styles.explorer, { borderTopColor: theme.line }, pressed && styles.pressed]}>
         <SymbolView name={{ ios: 'map', android: 'map', web: 'map' }} size={16} tintColor={theme.sea} />
-        <ThemedText type="smallBold" style={{ color: theme.sea }}>
+        <ThemedText type="smallBold" style={[styles.explorerLabel, { color: theme.sea }]}>
           {t('explorer.open')}
         </ThemedText>
+        {explorer && explorer.placeCount > 0 ? (
+          <ThemedText type="small" themeColor="textSecondary">
+            {t('explorer.tally', { cities: explorer.cityCount, neighborhoods: explorer.neighborhoodCount })}
+          </ThemedText>
+        ) : null}
       </Pressable>
     </Postcard>
   );
@@ -234,5 +241,8 @@ const styles = StyleSheet.create({
     minHeight: 44,
     paddingTop: Spacing.two,
     borderTopWidth: StyleSheet.hairlineWidth,
+  },
+  explorerLabel: {
+    flex: 1,
   },
 });

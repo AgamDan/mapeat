@@ -9,8 +9,9 @@ import { Postcard } from '@/components/postcard';
 import { ThemedText } from '@/components/themed-text';
 import { Fonts, MaxContentWidth, Radius, Spacing } from '@/constants/theme';
 import type { MapPlace } from '@/data/journal';
+import { ensureAreaLoaded } from '@/features/catalog/ensure-area';
 import { addressLine, cuisineLabels, KIND_LABEL_KEYS, venueNames } from '@/features/catalog/labels';
-import { findPlacesForLink, type LinkCandidate } from '@/features/links/match-place';
+import { findPlacesForLink, NEARBY_M, type LinkCandidate } from '@/features/links/match-place';
 import { extractUrl, isShortMapLink, parseMapLink } from '@/features/links/parse-map-link';
 import { LinkNetworkError, resolveShortLink } from '@/features/links/resolve-short-link';
 import { getMapCenter } from '@/features/map/map-center-store';
@@ -64,6 +65,10 @@ export default function AddFromLinkScreen() {
     const parsed = parseMapLink(url);
     if (!parsed) return show({ kind: 'error', message: isShortMapLink(input) ? 'link.notFound' : 'link.invalid' });
     if (parsed.lat == null && !parsed.name) return show({ kind: 'error', message: 'link.notFound' });
+    if (parsed.lat != null && parsed.lon != null) {
+      // A link to an area the map never showed: load it first. Offline, match what's cached.
+      await ensureAreaLoaded(db, parsed.lat, parsed.lon, NEARBY_M).catch(() => false);
+    }
     try {
       const match = await findPlacesForLink(db, parsed, getMapCenter());
       if (match.kind === 'one') show({ kind: 'one', place: match.candidate.place, fromList: null });
