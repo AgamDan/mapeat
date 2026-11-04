@@ -22,6 +22,7 @@ export function formatSubRatings(
 ) {
   return SUB_RATING_KEYS.flatMap((key) => {
     const value = sub[key];
-    return value === null ? [] : [`${t(SUB_RATING_LABELS[key])} ${format(value)}`];
+    // A non-breaking space keeps each label with its number when the line wraps.
+    return value === null ? [] : [`${t(SUB_RATING_LABELS[key])}\u00A0${format(value)}`];
   }).join(' · ');
 }

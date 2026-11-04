@@ -214,7 +214,7 @@ export default function VisitScreen() {
             <Pressable
               key={person.id}
               accessibilityRole="button"
-              accessibilityLabel={`${t('visit.deleteReview')}: ${person.name}`}
+              accessibilityLabel={t('visit.deleteReviewFor', { name: person.name })}
               accessibilityState={{ disabled: busy }}
               disabled={busy}
               onPress={() => confirmDeleteReview(person, review)}
@@ -224,10 +224,7 @@ export default function VisitScreen() {
                 (pressed || busy) && styles.pressed,
               ]}>
               <ThemedText type="defaultBold" themeColor="accent">
-                {t('visit.deleteReview')}
-              </ThemedText>
-              <ThemedText type="smallBold" style={{ color: theme[person.color] }}>
-                {person.name}
+                {t('visit.deleteReviewFor', { name: person.name })}
               </ThemedText>
             </Pressable>
           ))}

@@ -62,7 +62,8 @@ export default function ReviewScreen() {
     ? {
         submissionId,
         visitDate: visit.visitDate,
-        writer: startWriter,
+        // A new review is usually written by its author; editing keeps the current "Writing as".
+        writer: review ? startWriter : (author ?? startWriter),
         rating: review?.rating ?? null,
         sub: review ? { ...review.sub } : emptySubRatings(),
         notes: review?.notes ?? '',

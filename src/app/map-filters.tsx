@@ -212,7 +212,7 @@ const styles = StyleSheet.create({
   done: {
     alignItems: 'center',
     paddingVertical: Spacing.three,
-    borderRadius: Radius.pill,
+    borderRadius: Radius.small,
   },
   disabled: {
     opacity: 0.4,

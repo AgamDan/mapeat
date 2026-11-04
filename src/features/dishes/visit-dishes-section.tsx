@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, StyleSheet, TextInput, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
+import { UserText } from '@/components/user-text';
 import { Fonts, Radius, Spacing } from '@/constants/theme';
 import {
   addDish,
@@ -149,7 +150,7 @@ export function VisitDishesSection({ visitId }: { visitId: string }) {
                   onPress={() => setEditing({ id: dish.id, text: dish.name })}
                   onLongPress={() => confirmDelete(dish)}
                   style={({ pressed }) => [styles.flex, styles.name, pressed && styles.pressed]}>
-                  <ThemedText type="defaultBold">{dish.name}</ThemedText>
+                  <UserText type="defaultBold">{dish.name}</UserText>
                 </Pressable>
               )}
               <Pressable
@@ -282,7 +283,7 @@ const styles = StyleSheet.create({
   },
   vote: {
     width: 48,
-    height: 40,
+    height: 44,
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: Radius.pill,

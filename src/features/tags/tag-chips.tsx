@@ -1,6 +1,6 @@
 import { StyleSheet, View } from 'react-native';
 
-import { ThemedText } from '@/components/themed-text';
+import { UserText } from '@/components/user-text';
 import { Radius, Spacing } from '@/constants/theme';
 import type { Tag } from '@/data/journal';
 import { useTheme } from '@/hooks/use-theme';
@@ -14,9 +14,9 @@ export function TagChips({ tags }: { tags: readonly Tag[] }) {
     <View style={styles.row}>
       {tags.map((tag) => (
         <View key={tag.id} style={[styles.chip, { backgroundColor: theme.chip }]}>
-          <ThemedText type="small" numberOfLines={1}>
+          <UserText type="small" numberOfLines={1}>
             {tag.name}
-          </ThemedText>
+          </UserText>
         </View>
       ))}
     </View>

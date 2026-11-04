@@ -310,6 +310,8 @@ const styles = StyleSheet.create({
   },
   button: {
     alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 44,
     paddingVertical: Spacing.two,
     borderRadius: Radius.small,
     borderWidth: 1,

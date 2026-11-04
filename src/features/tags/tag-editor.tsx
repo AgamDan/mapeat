@@ -5,8 +5,9 @@ import { useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
+import { UserText } from '@/components/user-text';
 import { Fonts, MaxContentWidth, Radius, Spacing } from '@/constants/theme';
-import { createTag, deleteTag, DuplicateTagError, renameTag, setPlaceTags, type Tag } from '@/data/journal';
+import { createTag, deleteTag, DuplicateTagError, MAX_TAG_LENGTH, renameTag, setPlaceTags, type Tag } from '@/data/journal';
 import { JournalValidationError } from '@/data/visits';
 import { useAllTags, usePlaceTags } from '@/features/tags/use-tags';
 import { useTheme } from '@/hooks/use-theme';
@@ -134,7 +135,7 @@ export function TagEditor({ placeId }: { placeId?: string }) {
           placeholderTextColor={theme.textSecondary}
           accessibilityLabel={t('tags.newPlaceholder')}
           selectionColor={theme.accent}
-          maxLength={60}
+          maxLength={MAX_TAG_LENGTH}
           returnKeyType="done"
           submitBehavior="blurAndSubmit"
           onSubmitEditing={() => {
@@ -149,10 +150,10 @@ export function TagEditor({ placeId }: { placeId?: string }) {
           onPress={create}
           style={({ pressed }) => [
             styles.addButton,
-            { backgroundColor: theme.accent },
+            { borderColor: theme.accent },
             (pressed || creating || !newName.trim()) && styles.dimmed,
           ]}>
-          <ThemedText type="defaultBold" themeColor="onAccent">
+          <ThemedText type="defaultBold" themeColor="accent">
             {t('tags.create')}
           </ThemedText>
         </Pressable>
@@ -203,7 +204,7 @@ export function TagEditor({ placeId }: { placeId?: string }) {
                     size={22}
                     tintColor={on ? theme.accent : theme.textSecondary}
                   />
-                  <ThemedText style={styles.grow}>{tag.name}</ThemedText>
+                  <UserText style={styles.grow}>{tag.name}</UserText>
                 </Pressable>
               );
             }
@@ -218,7 +219,7 @@ export function TagEditor({ placeId }: { placeId?: string }) {
                     }}
                     accessibilityLabel={t('tags.rename')}
                     selectionColor={theme.accent}
-                    maxLength={60}
+                    maxLength={MAX_TAG_LENGTH}
                     autoFocus
                     returnKeyType="done"
                     submitBehavior="blurAndSubmit"
@@ -235,7 +236,7 @@ export function TagEditor({ placeId }: { placeId?: string }) {
             }
             return (
               <View key={tag.id} style={[styles.row, separator]}>
-                <ThemedText style={styles.grow}>{tag.name}</ThemedText>
+                <UserText style={styles.grow}>{tag.name}</UserText>
                 <TextButton
                   label={t('tags.rename')}
                   onPress={() => {
@@ -246,9 +247,8 @@ export function TagEditor({ placeId }: { placeId?: string }) {
                 <Pressable
                   accessibilityRole="button"
                   accessibilityLabel={`${t('tags.delete')}: ${tag.name}`}
-                  hitSlop={Spacing.two}
                   onPress={() => confirmDelete(tag)}
-                  style={({ pressed }) => pressed && styles.dimmed}>
+                  style={({ pressed }) => [styles.iconButton, pressed && styles.dimmed]}>
                   <SymbolView
                     name={{ ios: 'trash', android: 'delete', web: 'delete' }}
                     size={18}
@@ -302,9 +302,8 @@ function TextButton({
     <Pressable
       accessibilityRole="button"
       disabled={disabled}
-      hitSlop={Spacing.two}
       onPress={onPress}
-      style={({ pressed }) => (pressed || disabled) && styles.dimmed}>
+      style={({ pressed }) => [styles.textButton, (pressed || disabled) && styles.dimmed]}>
       <ThemedText type={strong ? 'smallBold' : 'small'} themeColor="accent">
         {label}
       </ThemedText>
@@ -333,15 +332,16 @@ const styles = StyleSheet.create({
     minHeight: 44,
     borderWidth: 1,
     borderRadius: Radius.small,
-    paddingHorizontal: Spacing.two,
+    paddingHorizontal: Spacing.three,
     paddingVertical: Spacing.one,
     fontFamily: Fonts.regular,
-    fontSize: 16,
+    fontSize: 17,
   },
   addButton: {
     minHeight: 44,
     paddingHorizontal: Spacing.three,
     borderRadius: Radius.small,
+    borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -381,7 +381,8 @@ const styles = StyleSheet.create({
   },
   modeLink: {
     alignSelf: 'flex-start',
-    paddingVertical: Spacing.one,
+    minHeight: 44,
+    justifyContent: 'center',
   },
   doneButton: {
     alignItems: 'center',
@@ -389,6 +390,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderRadius: Radius.small,
     borderWidth: 1,
+  },
+  iconButton: {
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  textButton: {
+    minHeight: 44,
+    justifyContent: 'center',
   },
   dimmed: {
     opacity: 0.6,

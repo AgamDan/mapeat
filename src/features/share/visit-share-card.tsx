@@ -12,6 +12,7 @@ import { photoUri } from '@/features/photos/photo-files';
 import { useTheme } from '@/hooks/use-theme';
 import { useLanguage, useT } from '@/i18n/i18n';
 import { formatVisitDate } from '@/lib/dates';
+import { directionOf } from '@/lib/text-direction';
 
 /** Size in points; captured at the iPhone's 3× scale this is a 1080 × 1350 px (4:5) image. */
 export const SHARE_CARD_WIDTH = 360;
@@ -39,7 +40,7 @@ type VisitShareCardProps = {
 export function VisitShareCard({ ref, visit, people, placeName, photos, onReady }: VisitShareCardProps) {
   const theme = useTheme();
   const t = useT();
-  const { language } = useLanguage();
+  const { language, direction } = useLanguage();
   const [laidOut, setLaidOut] = useState(false);
   const [settled, setSettled] = useState(0);
   const ready = laidOut && settled >= photos.length;
@@ -114,14 +115,15 @@ export function VisitShareCard({ ref, visit, people, placeName, photos, onReady 
                       <ThemedText
                         type="small"
                         numberOfLines={photos.length > 0 ? 4 : 10}
-                        allowFontScaling={false}>
+                        allowFontScaling={false}
+                        style={{ alignSelf: 'stretch', writingDirection: directionOf(review.notes, direction) }}>
                         {review.notes}
                       </ThemedText>
                     ) : null}
                   </>
                 ) : (
                   <ThemedText type="small" themeColor="textSecondary" allowFontScaling={false}>
-                    {t('visit.noReviewYet', { name: person.name })}
+                    {t('visit.noReview')}
                   </ThemedText>
                 )}
               </View>

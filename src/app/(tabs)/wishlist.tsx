@@ -158,7 +158,8 @@ const styles = StyleSheet.create({
     marginTop: Spacing.two,
     paddingVertical: Spacing.two,
     paddingHorizontal: Spacing.three,
-    borderRadius: Radius.card,
+    minHeight: 44,
+    borderRadius: Radius.small,
     borderWidth: 1,
   },
 });

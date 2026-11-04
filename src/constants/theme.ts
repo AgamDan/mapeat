@@ -25,7 +25,7 @@ export const Colors = {
     card: '#282826',
     text: '#E8E4DC',
     textSecondary: '#A8A49C',
-    line: '#333330',
+    line: '#45443F',
     chip: '#30302D',
     accent: '#C98462',
     onAccent: '#1C1C1A',

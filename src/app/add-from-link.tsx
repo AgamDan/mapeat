@@ -316,7 +316,8 @@ const styles = StyleSheet.create({
     fontSize: 17,
     paddingHorizontal: Spacing.three,
     paddingVertical: Spacing.two,
-    borderRadius: Radius.card,
+    minHeight: 44,
+    borderRadius: Radius.small,
     borderWidth: 1,
   },
   row: {
@@ -333,7 +334,8 @@ const styles = StyleSheet.create({
     gap: Spacing.two,
     paddingVertical: Spacing.two + Spacing.one,
     paddingHorizontal: Spacing.three,
-    borderRadius: Radius.card,
+    minHeight: 44,
+    borderRadius: Radius.small,
     borderWidth: 1,
   },
   pressed: {

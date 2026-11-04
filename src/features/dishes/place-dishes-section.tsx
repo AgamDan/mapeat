@@ -1,6 +1,7 @@
 import { StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
+import { UserText } from '@/components/user-text';
 import { Radius, Spacing, type ThemeColor } from '@/constants/theme';
 import type { DishVerdict, PlaceDishSummary } from '@/data/dishes';
 import { usePlaceDishSummary } from '@/features/dishes/use-dishes';
@@ -67,9 +68,9 @@ function DishRow({
         dish.verdict === 'skip' && styles.dimmed,
       ]}>
       <View style={styles.titleRow}>
-        <ThemedText type="defaultBold" style={styles.name}>
+        <UserText type="defaultBold" style={styles.name}>
           {dish.name}
-        </ThemedText>
+        </UserText>
         {chip ? (
           <View style={[styles.chip, { backgroundColor: theme[chip.background] }]}>
             <ThemedText type="smallBold" style={{ color: theme[chip.text] }}>

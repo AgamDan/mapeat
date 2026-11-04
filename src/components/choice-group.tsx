@@ -59,6 +59,8 @@ const styles = StyleSheet.create({
     gap: Spacing.two,
   },
   choice: {
+    minHeight: 44,
+    justifyContent: 'center',
     paddingVertical: Spacing.two,
     paddingHorizontal: Spacing.three,
     borderRadius: Radius.small,

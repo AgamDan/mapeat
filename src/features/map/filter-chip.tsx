@@ -37,6 +37,8 @@ export function FilterChip({ label, selected, role, onPress }: FilterChipProps) 
 
 const styles = StyleSheet.create({
   chip: {
+    minHeight: 44,
+    justifyContent: 'center',
     paddingVertical: Spacing.two,
     paddingHorizontal: Spacing.three,
     borderRadius: Radius.small,

@@ -264,7 +264,7 @@ const styles = StyleSheet.create({
     gap: Spacing.two,
     paddingVertical: Spacing.three,
     paddingHorizontal: Spacing.two,
-    borderRadius: Radius.card,
+    borderRadius: Radius.small,
     borderWidth: 1,
   },
   pressed: {

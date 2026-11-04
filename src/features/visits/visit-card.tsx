@@ -12,6 +12,7 @@ import { formatSubRatings } from '@/features/visits/sub-ratings';
 import { useTheme } from '@/hooks/use-theme';
 import { useLanguage, useT } from '@/i18n/i18n';
 import { formatVisitDate } from '@/lib/dates';
+import { directionOf } from '@/lib/text-direction';
 
 type VisitCardProps = {
   visit: Visit;
@@ -47,7 +48,7 @@ export function VisitCard({
 }: VisitCardProps) {
   const theme = useTheme();
   const { language } = useLanguage();
-  const date = formatVisitDate(visit.visitDate, language, 'long');
+  const date = formatVisitDate(visit.visitDate, language, 'medium');
 
   const dateText = <ThemedText type="subtitle">{date}</ThemedText>;
   const place = placeName ? (
@@ -117,6 +118,7 @@ function ReviewHalf({
 }) {
   const theme = useTheme();
   const t = useT();
+  const { direction } = useLanguage();
   const ink = theme[person.color];
   const openReview = () =>
     router.push({ pathname: '/visit/review', params: { id: visit.id, author: person.id } });
@@ -128,7 +130,7 @@ function ReviewHalf({
           {person.name}
         </ThemedText>
         <ThemedText type="small" themeColor="textSecondary">
-          {t('visit.noReviewYet', { name: person.name })}
+          {t('visit.noReview')}
         </ThemedText>
         <Pressable
           accessibilityRole="button"
@@ -136,7 +138,7 @@ function ReviewHalf({
           onPress={openReview}
           style={({ pressed }) => [styles.addButton, { borderColor: ink }, pressed && styles.pressed]}>
           <ThemedText type="smallBold" style={{ color: ink }}>
-            {t('visit.addReviewFor', { name: person.name })}
+            {t('visit.addReview')}
           </ThemedText>
         </Pressable>
       </View>
@@ -168,7 +170,11 @@ function ReviewHalf({
           {subLine}
         </ThemedText>
       ) : null}
-      {review.notes ? <ThemedText>{review.notes}</ThemedText> : null}
+      {review.notes ? (
+        <ThemedText style={[styles.userText, { writingDirection: directionOf(review.notes, direction) }]}>
+          {review.notes}
+        </ThemedText>
+      ) : null}
       {editor ? (
         <ThemedText type="small" themeColor="textSecondary">
           {t('visit.editedBy', { name: editor.name })}
@@ -231,14 +237,20 @@ const styles = StyleSheet.create({
     writingDirection: 'ltr',
   },
   addButton: {
+    minHeight: 44,
+    justifyContent: 'center',
     borderWidth: 1,
-    borderRadius: Radius.pill,
-    paddingVertical: Spacing.one,
-    paddingHorizontal: Spacing.two,
+    borderRadius: Radius.small,
+    paddingVertical: Spacing.two,
+    paddingHorizontal: Spacing.three,
     marginTop: Spacing.one,
   },
   editLink: {
-    paddingVertical: Spacing.half,
+    minHeight: 44,
+    justifyContent: 'center',
+  },
+  userText: {
+    alignSelf: 'stretch',
   },
   pressed: {
     opacity: 0.6,

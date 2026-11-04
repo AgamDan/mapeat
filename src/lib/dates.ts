@@ -35,12 +35,15 @@ export function toPickerDate(value: LocalDate): Date {
 }
 
 /** e.g. "Saturday 31 October 2026" / "יום שבת, 31 באוקטובר 2026". */
-export function formatVisitDate(value: LocalDate, language: Language, style: 'long' | 'short' = 'long') {
+/** e.g. long "Saturday 31 October 2026", medium "Sat, 31 Oct 2026", short "31 Oct 2026". */
+export function formatVisitDate(value: LocalDate, language: Language, style: 'long' | 'medium' | 'short' = 'long') {
   const [y, m, d] = value.split('-').map(Number);
   const options: Intl.DateTimeFormatOptions =
     style === 'long'
       ? { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' }
-      : { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' };
+      : style === 'medium'
+        ? { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' }
+        : { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' };
   return new Intl.DateTimeFormat(language === 'he' ? 'he-IL' : 'en-GB', options).format(
     new Date(Date.UTC(y, m - 1, d)),
   );

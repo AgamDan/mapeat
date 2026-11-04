@@ -273,8 +273,8 @@ const styles = StyleSheet.create({
     borderRadius: Radius.small,
     borderWidth: 1,
     fontFamily: Fonts.regular,
-    fontSize: 16,
-    lineHeight: 23,
+    fontSize: 17,
+    lineHeight: 24,
   },
   saveButton: {
     flexDirection: 'row',

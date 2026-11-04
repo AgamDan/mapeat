@@ -101,7 +101,7 @@ export function getWantReturnPlaces(db: SQLiteDatabase) {
 
 export type Tag = { id: string; name: string };
 
-const MAX_TAG_LENGTH = 30;
+export const MAX_TAG_LENGTH = 30;
 
 function cleanTagName(name: string) {
   const trimmed = name.trim().replace(/\s+/g, ' ');

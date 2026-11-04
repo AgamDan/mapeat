@@ -39,7 +39,7 @@ export default function SettingsScreen() {
 
 const styles = StyleSheet.create({
   content: {
-    padding: Spacing.four,
+    padding: Spacing.three,
     gap: Spacing.five,
     width: '100%',
     maxWidth: MaxContentWidth,
