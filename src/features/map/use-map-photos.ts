@@ -16,6 +16,8 @@ export function useMapPhotos(places: readonly MapPlace[], enabled: boolean) {
   const revision = useJournalRevision();
   const key = enabled
     ? places
+        // Only our own places can have photos; ignoring catalog dots keeps the key stable on pans.
+        .filter((place) => place.inJournal)
         .map((place) => place.id)
         .sort()
         .join(',')

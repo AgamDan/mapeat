@@ -60,6 +60,29 @@ function padBounds(bounds: Bounds, margin: number): Bounds {
   return { south: bounds.south - lat, north: bounds.north + lat, west: bounds.west - lon, east: bounds.east + lon };
 }
 
+/** Same pins in the same order, drawn the same way (see `placeMarkerKey`). */
+function samePins(a: readonly MapPlace[], b: readonly MapPlace[]) {
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) {
+    const x = a[i];
+    const y = b[i];
+    if (
+      x.id !== y.id ||
+      x.status !== y.status ||
+      x.wantReturn !== y.wantReturn ||
+      x.inJournal !== y.inJournal ||
+      x.lat !== y.lat ||
+      x.lon !== y.lon ||
+      x.name !== y.name ||
+      x.nameHe !== y.nameHe ||
+      x.nameEn !== y.nameEn
+    ) {
+      return false;
+    }
+  }
+  return true;
+}
+
 /**
  * Keeps the visible map area's venues in sync: shows cached places immediately, then fetches
  * missing or month-old tiles from Overpass one request at a time. `filter` and journal changes
@@ -118,7 +141,21 @@ export function useCatalog(filter: MapFilter, journalRevision: number) {
         }
         // Ignore results that arrive after a newer query was started.
         if (seq === showSeq.current) {
-          setShown({ places, cuisines: cuisinesOf(withoutCuisine), hiddenByFilters });
+          // Stable order by id: reordering keyed markers makes MapKit remove and re-add them.
+          const sorted = [...places].sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
+          const cuisines = cuisinesOf(withoutCuisine);
+          // Keep the same arrays when nothing changed, so the map doesn't re-render 400 markers.
+          setShown((prev) => {
+            const samePlaces = samePins(prev.places, sorted);
+            const sameCuisines =
+              prev.cuisines.length === cuisines.length && prev.cuisines.every((value, i) => value === cuisines[i]);
+            if (samePlaces && sameCuisines && prev.hiddenByFilters === hiddenByFilters) return prev;
+            return {
+              places: samePlaces ? prev.places : sorted,
+              cuisines: sameCuisines ? prev.cuisines : cuisines,
+              hiddenByFilters,
+            };
+          });
         }
       } catch {
         // A failed cache read keeps the pins already on screen; the next map move retries.

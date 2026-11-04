@@ -296,7 +296,12 @@ async function getReviewsForVisits(db: SQLiteDatabase, visitIds: readonly string
 /** What a map pin represents in our journal. */
 export type JournalStatus = 'visited' | 'wishlist' | 'none';
 
-export type MapPlace = Venue & { status: JournalStatus; wantReturn: boolean };
+export type MapPlace = Venue & {
+  status: JournalStatus;
+  wantReturn: boolean;
+  /** Has a journal row (visited, wishlist, tags, photos, …); only these can have our photos. */
+  inJournal: boolean;
+};
 
 type MapPlaceRow = PlaceRow & { is_visited: number; wishlist: number | null; want_return: number | null };
 
@@ -312,6 +317,7 @@ function toMapPlace(row: MapPlaceRow): MapPlace | null {
     ...venue,
     status: row.is_visited ? 'visited' : row.wishlist === 1 ? 'wishlist' : 'none',
     wantReturn: row.want_return === 1,
+    inJournal: row.wishlist !== null,
   };
 }
 

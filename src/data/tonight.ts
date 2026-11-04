@@ -32,6 +32,7 @@ export async function getTonightCandidates(db: SQLiteDatabase): Promise<TonightC
       ...venue,
       status: row.is_visited ? 'visited' : onWishlist ? 'wishlist' : 'none',
       wantReturn: row.want_return === 1,
+      inJournal: true,
       reason: onWishlist ? 'wishlist' : 'goBack',
     });
   }

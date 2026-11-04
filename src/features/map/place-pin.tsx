@@ -1,5 +1,6 @@
-import { memo, useEffect, useState } from 'react';
-import { Image, StyleSheet, View } from 'react-native';
+import { Image } from 'expo-image';
+import { memo } from 'react';
+import { StyleSheet, View } from 'react-native';
 import { Marker } from 'react-native-maps';
 
 import { Radius } from '@/constants/theme';
@@ -49,17 +50,7 @@ function OutlinedHeart({ size, fill, outline }: { size: number; fill: string; ou
   );
 }
 
-function PinBody({
-  place,
-  selected,
-  photoFile,
-  onPhotoReady,
-}: {
-  place: MapPlace;
-  selected: boolean;
-  photoFile?: string;
-  onPhotoReady: () => void;
-}) {
+function PinBody({ place, selected, photoFile }: { place: MapPlace; selected: boolean; photoFile?: string }) {
   const theme = useTheme();
 
   if (photoFile) {
@@ -77,12 +68,15 @@ function PinBody({
               backgroundColor: theme.card,
             },
           ]}>
+          {/* expo-image caches the decoded, downscaled image, so remounting a pin is cheap. */}
           <Image
             source={{ uri: photoUri(photoFile) }}
             style={styles.photo}
-            resizeMode="cover"
-            onLoad={onPhotoReady}
-            onError={onPhotoReady}
+            contentFit="cover"
+            cachePolicy="memory-disk"
+            recyclingKey={photoFile}
+            transition={0}
+            priority="low"
           />
         </View>
         {place.wantReturn ? (
@@ -160,45 +154,24 @@ function zIndexOf(place: MapPlace, selected: boolean, hasPhoto: boolean) {
   return 1;
 }
 
-/** If a photo never reports loading, stop redrawing the marker after this long anyway. */
-const PHOTO_READY_TIMEOUT_MS = 3_000;
-/** After the image loads, keep redrawing briefly so the native marker snapshot includes it. */
-const PHOTO_SETTLE_MS = 400;
-
 /**
  * One place on the map. Memoized on what it draws, so re-querying places (a new array of new
  * objects) doesn't re-render every marker. The parent keys it by everything that changes its
- * look, because with `tracksViewChanges={false}` a changed view must be re-mounted to update.
- * A photo pin keeps tracking view changes until its image has loaded, or the image wouldn't show.
+ * look, so a changed pin is re-mounted rather than updated in place.
  */
 export const PlaceMarker = memo(
   function PlaceMarker({ place, selected, label, photoFile, onSelect }: PlaceMarkerProps) {
-    const [photoReady, setPhotoReady] = useState(false);
-    const [photoLoaded, setPhotoLoaded] = useState(false);
-    const showsPhoto = photoFile != null;
-
-    useEffect(() => {
-      if (!showsPhoto) return;
-      const timer = setTimeout(() => setPhotoReady(true), photoLoaded ? PHOTO_SETTLE_MS : PHOTO_READY_TIMEOUT_MS);
-      return () => clearTimeout(timer);
-    }, [showsPhoto, photoLoaded]);
-
     return (
       <Marker
         coordinate={{ latitude: place.lat, longitude: place.lon }}
         anchor={{ x: 0.5, y: 0.5 }}
-        tracksViewChanges={showsPhoto && !photoReady}
+        tracksViewChanges={false}
         accessibilityLabel={label}
-        zIndex={zIndexOf(place, selected, showsPhoto)}
+        zIndex={zIndexOf(place, selected, photoFile != null)}
         onPress={() => onSelect(place.id)}>
         {/* The root has collapsable={false}: otherwise the new architecture flattens this
             layout-only wrapper, the native marker shrinks to the drawing, and taps miss it. */}
-        <PinBody
-          place={place}
-          selected={selected}
-          photoFile={photoFile}
-          onPhotoReady={() => setPhotoLoaded(true)}
-        />
+        <PinBody place={place} selected={selected} photoFile={photoFile} />
       </Marker>
     );
   },
