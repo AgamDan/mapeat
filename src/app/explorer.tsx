@@ -65,7 +65,7 @@ export default function ExplorerScreen() {
           action={{
             label: t('empty.goToMap'),
             symbol: { ios: 'map', android: 'map', web: 'map' },
-            onPress: () => router.navigate('/'),
+            onPress: () => router.dismissTo('/'),
           }}
         />
       ) : (

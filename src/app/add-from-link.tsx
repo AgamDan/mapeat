@@ -97,8 +97,8 @@ export default function AddFromLinkScreen() {
 
   const openOnMap = (place: MapPlace) => {
     requestMapFocus({ placeId: place.id, latitude: place.lat, longitude: place.lon });
-    // Opened from the Wishlist tab: unwinds past this modal and switches to the Map tab.
-    router.navigate('/');
+    // Opened from the Wishlist tab: pops back to the existing tabs and selects the Map tab.
+    router.dismissTo('/');
   };
 
   const finding = phase.kind === 'finding';
